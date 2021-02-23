@@ -1,27 +1,7 @@
-# -*- coding: utf-8 -*-
+__author__ = "Gonzalo Lardiés Guillén <gon.lardies.guillen@gmail.com>"
 
-#
-# * Copyright (c) 2009-2020. Authors: Cytomine SCRLFS.
-# *
-# * Licensed under the Apache License, Version 2.0 (the "License");
-# * you may not use this file except in compliance with the License.
-# * You may obtain a copy of the License at
-# *
-# *      http://www.apache.org/licenses/LICENSE-2.0
-# *
-# * Unless required by applicable law or agreed to in writing, software
-# * distributed under the License is distributed on an "AS IS" BASIS,
-# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# * See the License for the specific language governing permissions and
-# * limitations under the License.
-# */
-
-
-__author__ = "Hoyoux Renaud <renaud.hoyoux@cytomine.coop>"
-__copyright__ = "Apache 2 license. Made by Cytomine SCRLFS, Belgium, https://www.cytomine.coop/"
+# Version
 __version__ = "1.0.0"
-
-# This is a sample of a software that can be run by the Cytomine platform using the Cytomine Python client (https://github.com/cytomine/Cytomine-python-client).
 
 import os
 import sys
@@ -32,8 +12,20 @@ import cytomine
 from cytomine.models import ImageInstanceCollection, JobData
 
 
-# -----------------------------------------------------------------------------------------------------------
 def run(cyto_job, parameters):
+
+    """
+    Function:
+
+    
+
+    Params: 
+        cyto_job - 
+        parameter - 
+    
+    """
+
+
     logging.info("----- test software v%s -----", __version__)
     logging.info("Entering run(cyto_job=%s, parameters=%s)", cyto_job, parameters)
 
