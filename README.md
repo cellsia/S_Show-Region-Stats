@@ -1,4 +1,4 @@
-# S_python_software_example
+# S_Show-Region-Stats
 This is a basic example of an external software pluggable to the Cytomine platform.
 
 This python script is used as an example into our documentation on [how to integrate an external software into Cytomine](https://doc.cytomine.org/Add-an-external-software-to-Cytomine)
