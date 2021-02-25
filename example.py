@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-__author__ = "Hoyoux Renaud <renaud.hoyoux@cytomine.coop>"
-__copyright__ = "Apache 2 license. Made by Cytomine SCRLFS, Belgium, https://www.cytomine.coop/"
 __version__ = "1.0.0"
 
 # This is a sample of a software that can be run by the Cytomine platform using the Cytomine Python client (https://github.com/cytomine/Cytomine-python-client).
