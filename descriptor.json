@@ -2,7 +2,7 @@
   "name": "Show Region Stats",
   "description": "Basic example of an external software pluggable to the Cytomine platform. Will return a file containing the unique input value.",
   "container-image": {
-    "image": "glardies/s_show_region_stats",
+    "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
   "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [MY_INTEGER_PARAMETER]",
