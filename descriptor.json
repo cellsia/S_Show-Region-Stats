@@ -1,6 +1,6 @@
 {
   "name": "Show Region Stats",
-  "description": "Basic example of an external software pluggable to the Cytomine platform. Will return a file containing the unique input value.",
+  "description": "Plugin to show up statistics from a region-annotation",
   "container-image": {
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
