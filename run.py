@@ -14,25 +14,6 @@ from cytomine import Cytomine
 from cytomine.models import AnnotationCollection
 
 
-def get_params():
-    parser = ArgumentParser(prog="Show Region Stats")
-
-    # Cytomine
-    parser.add_argument('--cytomine_host', dest='host',
-                        default='demo.cytomine.be', help="The Cytomine host")
-    parser.add_argument('--cytomine_public_key', dest='public_key',
-                        help="The Cytomine public key")
-    parser.add_argument('--cytomine_private_key', dest='private_key',
-                        help="The Cytomine private key")
-    parser.add_argument('--cytomine_id_project', dest='id_project',
-                        help="The project from which we want the crop")
-    parser.add_argument('--cytomine_id_software', dest='id_software',
-                        help="The software wich we want to extract the annotations")
-    params, other = parser.parse_known_args(sys.argv[1:])
-
-    return params
-
-
 def run(params):
     
     with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
@@ -64,6 +45,21 @@ def run(params):
 
 if __name__ == '__main__':
 
-    params = get_params()
+    # get params
+    parser = ArgumentParser(prog="Show Region Stats")
+
+    # Cytomine
+    parser.add_argument('--cytomine_host', dest='host',
+                        default='demo.cytomine.be', help="The Cytomine host")
+    parser.add_argument('--cytomine_public_key', dest='public_key',
+                        help="The Cytomine public key")
+    parser.add_argument('--cytomine_private_key', dest='private_key',
+                        help="The Cytomine private key")
+    parser.add_argument('--cytomine_id_project', dest='id_project',
+                        help="The project from which we want the annotations")
+    parser.add_argument('--cytomine_id_software', dest='id_software',
+                        help="The software wich we want the annotations")
+    params, other = parser.parse_known_args(sys.argv[1:])
+    
     run(params)
     
