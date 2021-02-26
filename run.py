@@ -20,7 +20,6 @@ def run(params):
         annotations = AnnotationCollection()
         annotations.project = params.id_project
         annotations.software = params.id_software
-        annotations.ID = id_annotation
         annotations.showWKT = True
         annotations.showMeta = True
         annotations.showGIS = True
@@ -72,8 +71,6 @@ if __name__ == '__main__':
                         help="The project from which we want the crop")
     parser.add_argument('--cytomine_id_software', dest='id_software',
                         help="The software wich we want to extract the annotations")
-    parser.add_argument('--cytomine_id_annotation', dest='id_annotation',
-                        help="The annotation wich we want de data")
     parser.add_argument('--download_path', required=False,
                         help="Where to store images")
     params, other = parser.parse_known_args(sys.argv[1:])
