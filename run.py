@@ -35,10 +35,9 @@ def get_params():
 
 def run(params):
     
-    with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, id_project=params.id_project,
-                  id_software=params.id_software, verbose=logging.INFO) as cytomine:
+    with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
         
-        annotations = AnnotationCollection()
+        annotations = AnnotationCollection(id_project=params.id_project, id_software=params.id_software)
 
         """annotations.showWKT = True
         annotations.showMeta = True
