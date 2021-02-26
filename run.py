@@ -2,8 +2,6 @@
 
 __version__ = "1.0.0"
 
-# This is a sample of a software that can be run by the Cytomine platform using the Cytomine Python client (https://github.com/cytomine/Cytomine-python-client).
-
 import os
 import sys
 import logging
@@ -13,8 +11,8 @@ import cytomine
 from cytomine.models import ImageInstanceCollection, JobData
 
 
-# -----------------------------------------------------------------------------------------------------------
 def run(cyto_job, parameters):
+    
     logging.info("----- test software v%s -----", __version__)
     logging.info("Entering run(cyto_job=%s, parameters=%s)", cyto_job, parameters)
 
