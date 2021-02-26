@@ -20,11 +20,11 @@ def run(params):
         
         annotations = AnnotationCollection(id_project=params.id_project, id_software=params.id_software)
 
-        """annotations.showWKT = True
+        annotations.showWKT = True
         annotations.showMeta = True
         annotations.showGIS = True
         annotations.showTerm = True
-        annotations.fetch()"""
+        annotations.fetch()
 
         print(annotations)
 
