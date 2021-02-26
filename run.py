@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import logging
 import sys
 import os
@@ -16,19 +11,16 @@ from cytomine.models import AnnotationCollection
 
 def run(params):
     
+    # acceso a la instancia de cytomine
     with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
         
-        annotations = AnnotationCollection(id_project=params.id_project, id_software=params.id_software)
-
-        annotations.showWKT = True
-        annotations.showMeta = True
-        annotations.showGIS = True
-        annotations.showTerm = True
+        # se define AnnotationCollection --> contiene todas las anotaciones para (id_proyecto) + (id_software)
+        annotations = AnnotationCollection(id_project=params.id_project, id_software=params.id_software, 
+                                           showWKT=True, showMeta=True, showGIS=True, showTerm=True)
         annotations.fetch()
-
         print(annotations)
 
-
+        # Se itera para imprimir cada anotacion 
         for annotation in annotations:
             print("ID: {} | Image: {} | Project: {} | Term: {} | User: {} | Area: {} | Perimeter: {} | WKT: {}".format(
                 annotation.id,
@@ -41,16 +33,23 @@ def run(params):
                 annotation.location
             ))
 
+        """
+        DUDA: la idea es: (?)
+            - pasarle al script como argumento el id de la anotacion y sacar stats de esa anotación
+            - hacerlo para todas las anotaciones dado un proyecto y un algoritmo
+
+        """
+
 
 
 if __name__ == '__main__':
 
-    # get params
+    # parser para seleccionar los parametros
     parser = ArgumentParser(prog="Show Region Stats")
 
-    # Cytomine
-    parser.add_argument('--cytomine_host', dest='host',
-                        default='demo.cytomine.be', help="The Cytomine host")
+    # Parametros
+    parser.add_argument('--cytomine_host', dest='host', default='viewer2.cells-ia.com', 
+                        help="The Cytomine host")
     parser.add_argument('--cytomine_public_key', dest='public_key',
                         help="The Cytomine public key")
     parser.add_argument('--cytomine_private_key', dest='private_key',
