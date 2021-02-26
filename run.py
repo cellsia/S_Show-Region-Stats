@@ -14,8 +14,7 @@ from cytomine import Cytomine
 from cytomine.models import AnnotationCollection
 
 
-if __name__ == '__main__':
-
+def run():
     parser = ArgumentParser(prog="get annotations")
 
     # Cytomine
@@ -29,6 +28,8 @@ if __name__ == '__main__':
                         help="The project from which we want the crop")
     parser.add_argument('--cytomine_id_software', dest='id_software',
                         help="The software wich we want to extract the annotations")
+    parser.add_argument('--cytomine_id_annotation', dest='id_annotation',
+                        help="The annotation wich we want de data")
     parser.add_argument('--download_path', required=False,
                         help="Where to store images")
     params, other = parser.parse_known_args(sys.argv[1:])
@@ -37,6 +38,7 @@ if __name__ == '__main__':
         annotations = AnnotationCollection()
         annotations.project = params.id_project
         annotations.software = params.id_software
+        annotations.ID = id_annotation
         annotations.showWKT = True
         annotations.showMeta = True
         annotations.showGIS = True
@@ -69,3 +71,9 @@ if __name__ == '__main__':
                 annotation.dump(dest_pattern=os.path.join(params.download_path, "{project}", "crop", "{id}.jpg"), max_size = 512)
                 annotation.dump(dest_pattern=os.path.join(params.download_path, "{project}", "mask", "{id}.jpg"), mask=True, max_size = 512)
                 annotation.dump(dest_pattern=os.path.join(params.download_path, "{project}", "alpha", "{id}.png"), mask=True, alpha=True, max_size = 512)
+
+
+
+if __name__ == '__main__':
+    run()
+    
