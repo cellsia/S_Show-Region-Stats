@@ -27,6 +27,8 @@ if __name__ == '__main__':
                         help="The Cytomine private key")
     parser.add_argument('--cytomine_id_project', dest='id_project',
                         help="The project from which we want the crop")
+    parser.add_argument('--cytomine_id_software', dest='id_software',
+                        help="The software wich we want to extract the annotations")
     parser.add_argument('--download_path', required=False,
                         help="Where to store images")
     params, other = parser.parse_known_args(sys.argv[1:])
@@ -34,6 +36,7 @@ if __name__ == '__main__':
     with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
         annotations = AnnotationCollection()
         annotations.project = params.id_project
+        annotations.software = params.id_software
         annotations.showWKT = True
         annotations.showMeta = True
         annotations.showGIS = True
@@ -60,7 +63,7 @@ if __name__ == '__main__':
                 annotation.location
             ))
 
-            
+
             if params.download_path:
                 # max_size is set to 512 (in pixels). Without max_size parameter, it download a dump of the same size that the annotation.
                 annotation.dump(dest_pattern=os.path.join(params.download_path, "{project}", "crop", "{id}.jpg"), max_size = 512)
