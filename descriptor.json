@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [MY_INTEGER_PARAMETER]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [CYTOMINE_ID_IMAGE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -53,11 +53,11 @@
       "type": "Number"
     },
     {
-      "id": "my_integer_parameter",
+      "id": "cytomine_id_image",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
-      "name": "Example integer parameter",
-      "set-by-server": false,
+      "name": "Cytomine image ID",
+      "set-by-server": true,
       "optional": false,
       "type": "Number"
     }
