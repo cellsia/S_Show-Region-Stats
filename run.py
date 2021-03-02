@@ -7,10 +7,13 @@ from __future__ import unicode_literals
 import logging
 import sys
 import os
+import json
 from argparse import ArgumentParser
 
-from cytomine import Cytomine
-from cytomine.models import AnnotationCollection
+from cytomine import Cytomine, CytomineJob
+from cytomine.models import AnnotationCollection, JobData
+from cytomine.models.software import JobDataCollection
+
 
 __version__ = "1.0.0"
 
@@ -25,30 +28,29 @@ def checking(params):
         - private_key: PRIVATE_KEY
         - id_project: {}
         - id_software: {}
-        - id_imagen: {}
-    """.format(__version__, params.host, params.id_project, params.id_software, params.id_image)
+        - id_image: {}
+        - id_terms: {}
+        - type_of_detections: {}
+
+    """.format(__version__, params.host, params.id_project, params.id_software, params.id_image, params.id_term, params.type)
 
     return print(check)
 
 
-def run(params):
+def get_annotations(params):
 
     with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
 
-        print(cytomine.current_user)
-
         annotations = AnnotationCollection()
         annotations.project = params.id_project
-        annotations.software = params.id_software
-        annotations.image = params.id_image
         annotations.showWKT = True
         annotations.showMeta = True
         annotations.showGIS = True
         annotations.showTerm = True
         annotations.fetch()
 
-        
-        print(annotations)
+
+        print("""\n     -------------------- Anotaciones --------------------\n""")
         for annotation in annotations:
             print("ID: {} | Image: {} | Project: {} | Term: {} | User: {} | Area: {} | Perimeter: {} | WKT: {}".format(
                 annotation.id,
@@ -61,11 +63,27 @@ def run(params):
                 annotation.location
             ))
 
+        return annotations
+
+def get_results(params):
+
+    # sacar json file con resultados
+
+    with CytomineJob(host=params.host, public_key=params.public_key, private_key=params.private_key, project_id=params.id_project,
+                     software_id=params.id_software) as cytomine_job:
+
+        job = cytomine_job.job
+
+        results = ""
+
+        return results
+
+
 
 if __name__ == '__main__':
 
     parser = ArgumentParser(prog="Show Region Stats")
-    parser.add_argument('--cytomine_host', dest='host', default='viewer2.cells-ia.com', 
+    parser.add_argument('--cytomine_host', dest='host', default='viewer2.cells-ia.com',
                         help="The Cytomine host")
     parser.add_argument('--cytomine_public_key', dest='public_key',
                         help="The Cytomine public key")
@@ -73,12 +91,16 @@ if __name__ == '__main__':
                         help="The Cytomine private key")
     parser.add_argument('--cytomine_id_project', dest='id_project',
                         help="The project from which we want the annotations")
-    parser.add_argument('--cytomine_id_software', dest='id_software',
-                        help="The software wich we want the annotations")
-    parser.add_argument('--cytomine_id_image', dest="id_image",
-                        help="The image wich we want the anotations")
+    parser.add_argument('--cytomine_id_software', dest="id_software",
+                        help="The ID of the software")
+    parser.add_argument('--cytomine_image', dest='id_image',
+                        help="Image instance")
+    parser.add_argument('--cytomine_id_term', dest='id_term',
+                        help="ID term")
+    parser.add_argument('--type_of_detections', dest="type",
+                        help="type of detections")
     params, other = parser.parse_known_args(sys.argv[1:])
-    
+
     checking(params)
-    run(params)
-    
+    get_annotations(params)
+    get_results(params)
