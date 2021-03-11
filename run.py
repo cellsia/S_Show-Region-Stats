@@ -12,12 +12,12 @@ import numpy as np
 import csv
 import shutil
 
-
+import cytomine
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, UserJobCollection, Property, Annotation, AttachedFile, JobData
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 
 def process_polygon(polygon):
     pol = polygon[8:].lstrip('((').rstrip('))').split(',')
