@@ -70,7 +70,7 @@ def get_stats_annotations(params):
         annotations.project = params.cytomine_id_project
 
         # Busqueda o bien por ID de anotación o bien por término
-        if not(params.id_annotation == None):
+        if not(params.cytomine_id_annotation == None):
             annotations.id = params.cytomine_id_annotation
         else:
             annotations.term = params.terms_to_analyze
