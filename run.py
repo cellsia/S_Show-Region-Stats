@@ -62,8 +62,6 @@ def is_inside(point, polygon):
 def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
-
-        term_id = int(term_id.rstrip("[").lstrip("]"))
         
         term = Term().fetch(id=term_id)
         return term.name
