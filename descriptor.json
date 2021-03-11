@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [CYTOMINE_IMAGE] [CYTOMINE_ID_TERM] [TYPE_OF_DETECTIONS]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -44,16 +44,29 @@
       "type": "Number"
     },
     {
-      "id": "cytomine_id_software",
+      "id": "cytomine_id_annotation",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
-      "name": "Cytomine software ID",
-      "set-by-server": true,
-      "optional": false,
-      "type": "Number"
+      "name": "Cytomine project ID",
+      "set-by-server": false,
+      "optional": true,
+      "type": "Number" 
     },
     {
-      "id": "cytomine_image",
+      "name": "terms_to_analyze",
+      "description": "(Annotations filtering) Identifiers of terms of which the annotations should be selected for prediction.",
+      "set-by-server": false,
+      "value-key": "@ID",
+      "optional": true,
+      "id": "terms_to_analyze",
+      "type": "ListDomain",
+      "uri": "/api/project/$currentProject$/term.json",
+      "uri-print-attribute": "name",
+      "uri-sort-attribute": "name",
+      "command-line-flag": "--@id"
+    },
+    {
+      "id": "images_to_analyze",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
       "name": "Cytomine image",
@@ -63,27 +76,6 @@
       "uri":"api/project/$currentProject$/imageinstance.json",
       "uri-print-attribute":"instanceFilename",
       "uri-sort-attribute":"instanceFilename"
-    },
-    {
-      "id": "cytomine_id_term",
-      "value-key": "[@ID]",
-      "command-line-flag": "--@id",
-      "name": "Cytomine ID term",
-      "set-by-server": false,
-      "optional": false,
-      "type": "ListDomain",
-      "uri": "/api/ontology/$currentOntology$/term.json",
-      "uri-print-attribute":"name",
-      "uri-sort-attribute":"name"
-    },
-    {
-      "id": "type_of_detections",
-      "value-key": "[@ID]",
-      "command-line-flag": "--@id",
-      "name": "Cytomine ID term",
-      "set-by-server": false,
-      "optional": false,
-      "type": "String"
     }
   ],
 
