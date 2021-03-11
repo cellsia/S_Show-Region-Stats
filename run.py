@@ -62,12 +62,10 @@ def is_inside(point, polygon):
 def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
-
-        term_id = term_id.rstrip(']').lstrip('[')
+        
+        term_id = term_id.lstrip('[').rstrip(']')
         term_id = int(term_id)
-
         term = Term().fetch(id=term_id)
-
         return term.name
 
 def get_stats_annotations(params):
@@ -80,7 +78,8 @@ def get_stats_annotations(params):
         annotations.project = params.cytomine_id_project
 
         # Busqueda o bien por ID de anotación o bien por término
-        if params.cytomine_id_annotation == None:
+        
+        if not(params.cytomine_id_annotation == None):
             annotations.id = params.cytomine_id_annotation
         else:
             annotations.term = params.terms_to_analyze
@@ -220,7 +219,6 @@ def load_annotation_properties(stats, params):
             ID = stat["general_info"]["annotation_id"]
             global_counter = stat["general_info"]["global_cter"]
             global_image_counter = stat["general_info"]["global_image_cter"]
-            anot_area = stat["general_info"]["annotation_area"]
 
             annotation = Annotation().fetch(id=ID)
             Property(annotation, key='Detections_annotation', value=global_counter).save()
@@ -299,14 +297,14 @@ def run(cyto_job, parameters):
         job.update(progress=90, statusComment="Generating .CSV file")
         rows = generate_rows(stats, parameters)
 
-
+        
         output_path = os.path.join(working_path, "stats.csv")
         f= open(output_path,"w+")
         writer = csv.writer(f)
         writer.writerows(rows)
-        f.close()
+        f.close() 
 
-
+        
         job_data = JobData(job.id, "stats", "stats.csv").save()
         job_data.upload(output_path)
 
@@ -327,3 +325,4 @@ if __name__ == '__main__':
 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
         run(cyto_job, cyto_job.parameters)
+        
