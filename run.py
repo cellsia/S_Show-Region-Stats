@@ -224,7 +224,7 @@ def load_annotation_properties(stats, params):
 
         return print("Done")
 
-def generate_csv(stats):
+def generate_rows(stats):
 
     print("""\n     ------------------- Generating CSV file -------------------\n""")
 
@@ -289,17 +289,22 @@ def run(cyto_job, parameters):
 
         # Generar archivo stats.csv
         job.update(progress=90, statusComment="Generating .CSV file")
-        rows = generate_csv(stats)
+        rows = generate_rows(stats)
 
-       
+        
         output_path = os.path.join(working_path, "stats.csv")
         f= open(output_path,"w+")
-        f.write(rows)
+        writer = csv.writer(_file)
+        writer.writerows(rows)
         f.close() 
 
-       
+        
         job_data = JobData(job.id, "Generated File", "stats.csv").save()
         job_data.upload(output_path)
+
+        logging.info("Finished generating .CSV file")
+
+        job.update(progress=progress, status=Job.TERMINATED, statusComment="Terminated")
 
     finally:
         logging.info("Deleting folder %s", working_path)
