@@ -120,7 +120,7 @@ def get_results(params):
         results = AnnotationCollection()
 
         # O búsqueda de imagen o todas
-        if not(params.images == None):
+        if not(params.images_to_analyze == None):
             results.image = params.images_to_analyze
         else:
             results.project = params.cytomine_id_project
