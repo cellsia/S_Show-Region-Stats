@@ -62,22 +62,22 @@ def is_inside(point, polygon):
 
 def get_stats_annotations(params):
 
-    with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
         print("""\n     -------------------- Annotations Stats --------------------\n""")
 
         annotations = AnnotationCollection()
-        annotations.project = params.id_project
+        annotations.project = params.cytomine_id_project
 
         # Busqueda o bien por ID de anotación o bien por término
         if not(params.id_annotation == None):
-            annotations.id = params.id_annotation
+            annotations.id = params.cytomine_id_annotation
         else:
-            annotations.term = params.terms
+            annotations.term = params.terms_to_analyze
 
         # Se especifica imagen o se busca en todas
         if not(params.images == None):
-            annotations.images = params.images
+            annotations.images = params.images_to_analyze
 
         annotations.showWKT = True
         annotations.showMeta = True
@@ -108,7 +108,7 @@ def get_results(params):
         print("""\n     ------------------------ UserJobs -------------------------\n""")
 
         userjobs = UserJobCollection()
-        userjobs.fetch_with_filter("project", params.id_project)
+        userjobs.fetch_with_filter("project", params.cytomine_id_project)
 
         userjobs_l = []
         [userjobs_l.append(userjob.id) for userjob in userjobs];
@@ -121,9 +121,9 @@ def get_results(params):
 
         # O búsqueda de imagen o todas
         if not(params.images == None):
-            results.image = params.images
+            results.image = params.images_to_analyze
         else:
-            results.project = params.id_project
+            results.project = params.cytomine_id_project
 
         results.users= userjobs_l
         results.showWKT = True
@@ -203,7 +203,7 @@ def load_annotation_properties(stats, params):
 
     print("""\n     ---------------------- Adding  props ----------------------\n""")
 
-    with Cytomine(host=params.host, public_key=params.public_key, private_key=params.private_key, verbose=logging.INFO) as cytomine:
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
         for stat in stats:
 
