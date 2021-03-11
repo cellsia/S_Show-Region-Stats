@@ -304,7 +304,7 @@ def run(cyto_job, parameters):
 
         logging.info("Finished generating .CSV file")
 
-        job.update(progress=100, status=Job.TERMINATED, statusComment="Terminated")
+        job.update(progress=100, statusComment="Terminated")
 
     finally:
         logging.info("Deleting folder %s", working_path)
