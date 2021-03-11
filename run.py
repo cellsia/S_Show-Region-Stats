@@ -65,6 +65,7 @@ def get_term_name(term_id, params):
         
         term_str = str(term_id)
         term = term_str.rstrip("]").lstrip("[")
+        term = int(term)
         term = Term().fetch(id=term_id)
         return term.name
 
