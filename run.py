@@ -294,7 +294,7 @@ def run(cyto_job, parameters):
         
         output_path = os.path.join(working_path, "stats.csv")
         f= open(output_path,"w+")
-        writer = csv.writer(_file)
+        writer = csv.writer(f)
         writer.writerows(rows)
         f.close() 
 
