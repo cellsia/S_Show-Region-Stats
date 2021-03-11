@@ -62,11 +62,12 @@ def is_inside(point, polygon):
 def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
-        
-        term_str = str(term_id)
-        term = term_str.rstrip("]").lstrip("[")
-        term = int(term)
+
+        term_id = term_id.rstrip(']').lstrip('[')
+        term_id = int(term_id)
+
         term = Term().fetch(id=term_id)
+
         return term.name
 
 def get_stats_annotations(params):
@@ -79,7 +80,7 @@ def get_stats_annotations(params):
         annotations.project = params.cytomine_id_project
 
         # Busqueda o bien por ID de anotación o bien por término
-        if not(params.cytomine_id_annotation == None):
+        if params.cytomine_id_annotation == None:
             annotations.id = params.cytomine_id_annotation
         else:
             annotations.term = params.terms_to_analyze
@@ -227,12 +228,12 @@ def load_annotation_properties(stats, params):
 
             for key, value in stat.items():
                 if key != "general_info":
-                    Property(annotation, key="Detections_term"+get_term_name(key, params)+"_annotation", value=value["count"]).save()
-                    Property(annotation, key="Detections_term"+get_term_name(key, params)+"_image", value=value["global_image_count"]).save()
+                    Property(annotation, key=get_term_name(key, params)+"_annotation", value=value["count"]).save()
+                    Property(annotation, key=get_term_name(key, params)+"_image", value=value["global_image_count"]).save()
 
         return print("Done")
 
-def generate_rows(stats):
+def generate_rows(stats, params):
 
     print("""\n     ------------------- Generating CSV file -------------------\n""")
 
@@ -252,7 +253,7 @@ def generate_rows(stats):
 
         for key, value in stat.items():
             if key != "general_info":
-                rows.append(["---------- Term: {} ----------".format(get_term_name(key, params))])
+                rows.append(["---------- {} ----------".format(get_term_name(key, params))])
                 for k, v in value.items():
                     rows.append([k, v])
 
@@ -296,16 +297,16 @@ def run(cyto_job, parameters):
 
         # Generar archivo stats.csv
         job.update(progress=90, statusComment="Generating .CSV file")
-        rows = generate_rows(stats)
+        rows = generate_rows(stats, parameters)
 
-        
+
         output_path = os.path.join(working_path, "stats.csv")
         f= open(output_path,"w+")
         writer = csv.writer(f)
         writer.writerows(rows)
-        f.close() 
+        f.close()
 
-        
+
         job_data = JobData(job.id, "stats", "stats.csv").save()
         job_data.upload(output_path)
 
@@ -326,4 +327,3 @@ if __name__ == '__main__':
 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
         run(cyto_job, cyto_job.parameters)
-        
