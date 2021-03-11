@@ -14,7 +14,7 @@ import shutil
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, UserJobCollection, Property, Annotation, AttachedFile, JobData
+from cytomine.models import AnnotationCollection, UserJobCollection, Property, Annotation, AttachedFile, JobData, Term
 
 
 __version__ = "1.0.2"
@@ -59,6 +59,12 @@ def is_inside(point, polygon):
     else:
         return False
 
+def get_term_name(term_id):
+
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+        
+        term = Term().fetch(id=term_id)
+        return term
 
 def get_stats_annotations(params):
 
@@ -266,6 +272,7 @@ def run(cyto_job, parameters):
 
     try:
         
+        print("Term:", get_term_name(749956))
 
         # Sacar las anotaciones Stats con las regiones de interés
         job.update(progress=0, statusComment="Getting stats annotations")
@@ -299,7 +306,7 @@ def run(cyto_job, parameters):
         f.close() 
 
         
-        job_data = JobData(job.id, "Generated File", "stats.csv").save()
+        job_data = JobData(job.id, "stats", "stats.csv").save()
         job_data.upload(output_path)
 
         logging.info("Finished generating .CSV file")
@@ -319,3 +326,4 @@ if __name__ == '__main__':
 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
         run(cyto_job, cyto_job.parameters)
+        
