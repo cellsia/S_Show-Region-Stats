@@ -59,7 +59,7 @@ def is_inside(point, polygon):
     else:
         return False
 
-def get_term_name(term_id):
+def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
         
@@ -272,7 +272,7 @@ def run(cyto_job, parameters):
 
     try:
         
-        print("Term:", get_term_name(749956))
+        print("Term:", get_term_name(749956, parameters))
 
         # Sacar las anotaciones Stats con las regiones de interés
         job.update(progress=0, statusComment="Getting stats annotations")
