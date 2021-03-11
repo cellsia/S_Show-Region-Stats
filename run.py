@@ -62,6 +62,8 @@ def is_inside(point, polygon):
 def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+
+        term_id = int(term_id.rstrip("[").lstrip("]"))
         
         term = Term().fetch(id=term_id)
         return term.name
@@ -221,12 +223,11 @@ def load_annotation_properties(stats, params):
             annotation = Annotation().fetch(id=ID)
             Property(annotation, key='Detections_annotation', value=global_counter).save()
             Property(annotation, key='Detections_image', value=global_image_counter).save()
-            Property(annotation, key='Annotation_area', value=anot_area).save()
 
             for key, value in stat.items():
                 if key != "general_info":
-                    Property(annotation, key="Detections_term"+key+"_annotation", value=value["count"]).save()
-                    Property(annotation, key="Detections_term"+key+"_image", value=value["global_image_count"]).save()
+                    Property(annotation, key="Detections_term"+get_term_name(key, params)+"_annotation", value=value["count"]).save()
+                    Property(annotation, key="Detections_term"+get_term_name(key, params)+"_image", value=value["global_image_count"]).save()
 
         return print("Done")
 
@@ -250,7 +251,7 @@ def generate_rows(stats):
 
         for key, value in stat.items():
             if key != "general_info":
-                rows.append(["---------- Term: {} ----------".format(key)])
+                rows.append(["---------- Term: {} ----------".format(get_term_name(key, params))])
                 for k, v in value.items():
                     rows.append([k, v])
 
@@ -271,8 +272,6 @@ def run(cyto_job, parameters):
         os.makedirs(working_path)
 
     try:
-        
-        print("Term:", get_term_name(749956, parameters))
 
         # Sacar las anotaciones Stats con las regiones de interés
         job.update(progress=0, statusComment="Getting stats annotations")
