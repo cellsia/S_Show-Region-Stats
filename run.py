@@ -76,7 +76,7 @@ def get_stats_annotations(params):
             annotations.term = params.terms_to_analyze
 
         # Se especifica imagen o se busca en todas
-        if not(params.images == None):
+        if not(params.images_to_analyze == None):
             annotations.images = params.images_to_analyze
 
         annotations.showWKT = True
