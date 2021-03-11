@@ -250,15 +250,7 @@ def generate_csv(stats):
 
         rows.append([])
 
-    with open('stats.csv', 'w', newline='') as _file:
-        writer = csv.writer(_file)
-        writer.writerows(rows)
-        _file.close()
-
-    _file = open('stats.csv', 'r', newline='')
-    print(_file, "\nDone")
-
-    return _file
+    return rows
 
 def run(cyto_job, parameters):
     logging.info("----- test software v%s -----", __version__)
@@ -297,16 +289,17 @@ def run(cyto_job, parameters):
 
         # Generar archivo stats.csv
         job.update(progress=90, statusComment="Generating .CSV file")
-        _file = generate_csv(stats)
+        rows = generate_csv(stats)
 
+       
         output_path = os.path.join(working_path, "stats.csv")
+        f= open(output_path,"w+")
+        f.write(rows)
+        f.close() 
 
+       
         job_data = JobData(job.id, "Generated File", "stats.csv").save()
         job_data.upload(output_path)
-
-        logging.info("Finished generating .CSV file")
-
-        job.update(progress=progress, status=Job.TERMINATED, statusComment="Terminated")
 
     finally:
         logging.info("Deleting folder %s", working_path)
