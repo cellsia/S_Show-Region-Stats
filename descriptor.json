@@ -57,14 +57,15 @@
       "id": "cytomine_id_annotation",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
-      "name": "Cytomine project ID",
+      "name": "Cytomine annotation ID",
+      "description": "ID de la annotacion (opcional si se selecciona un término)",
       "set-by-server": false,
       "optional": true,
       "type": "Number" 
     },
     {
       "name": "terms_to_analyze",
-      "description": "(Annotations filtering) Identifiers of terms of which the annotations should be selected for prediction.",
+      "description": "Término a analizar (opcional si se introduce ID de anotación)",
       "set-by-server": false,
       "value-key": "@ID",
       "optional": true,
@@ -77,13 +78,14 @@
     },
     {
       "id": "images_to_analyze",
+      "description": "Imagen que contiene la anotación (opcional)",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
       "name": "Cytomine image",
       "set-by-server": false,
-      "optional": false,
+      "optional": true,
       "type": "Domain",
-      "uri":"api/project/$currentProject$/imageinstance.json",
+      "uri":"/api/project/$currentProject$/imageinstance.json",
       "uri-print-attribute":"instanceFilename",
       "uri-sort-attribute":"instanceFilename"
     }
