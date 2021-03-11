@@ -44,6 +44,16 @@
       "type": "Number"
     },
     {
+      "name": "Cytomine software id",
+      "description": "Cytomine software id",
+      "set-by-server": true,
+      "value-key": "@ID",
+      "optional": false,
+      "id": "cytomine_id_software",
+      "type": "Number",
+      "command-line-flag": "--@id"
+    },
+    {
       "id": "cytomine_id_annotation",
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
