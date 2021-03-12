@@ -65,7 +65,7 @@
     },
     {
       "name": "terms_to_analyze",
-      "description": "Término a analizar (opcional si se introduce ID de anotación)",
+      "description": "Término a analizar (opcional si se introduce ID de anotación / default -> Stats)",
       "set-by-server": false,
       "value-key": "@ID",
       "optional": true,
