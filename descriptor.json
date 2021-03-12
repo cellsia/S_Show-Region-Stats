@@ -47,7 +47,7 @@
       "name": "Cytomine software id",
       "description": "Cytomine software id",
       "set-by-server": true,
-      "value-key": "@ID",
+      "value-key": "[@ID]",
       "optional": false,
       "id": "cytomine_id_software",
       "type": "Number",
