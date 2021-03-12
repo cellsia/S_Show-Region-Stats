@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -44,14 +44,13 @@
       "type": "Number"
     },
     {
-      "name": "Cytomine software id",
-      "description": "Cytomine software id",
-      "set-by-server": true,
-      "value-key": "[@ID]",
-      "optional": false,
       "id": "cytomine_id_software",
-      "type": "Number",
-      "command-line-flag": "--@id"
+      "value-key": "[@ID]",
+      "command-line-flag": "--@id",
+      "name": "Cytomine software ID",
+      "set-by-server": true,
+      "optional": false,
+      "type": "Number"
     },
     {
       "id": "cytomine_id_annotation",
@@ -65,7 +64,7 @@
     },
     {
       "name": "terms_to_analyze",
-      "description": "Término a analizar (opcional si se introduce ID de anotación / default -> Stats)",
+      "description": "Término a analizar (opcional si se introduce ID de anotación)",
       "set-by-server": false,
       "value-key": "@ID",
       "optional": true,
