@@ -74,7 +74,8 @@
       "uri": "/api/project/$currentProject$/term.json",
       "uri-print-attribute": "name",
       "uri-sort-attribute": "name",
-      "command-line-flag": "--@id"
+      "command-line-flag": "--@id",
+      "default-value":"Stats"
     },
     {
       "id": "images_to_analyze",
