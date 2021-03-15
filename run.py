@@ -17,7 +17,7 @@ from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, UserJobCollection, Property, Annotation, AttachedFile, JobData, Term
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.5"
 
 def process_polygon(polygon):
     pol = polygon[8:].lstrip('((').rstrip('))').split(',')
@@ -62,7 +62,7 @@ def is_inside(point, polygon):
 def get_term_name(term_id, params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
-        
+
         term_id = term_id.lstrip('[').rstrip(']')
         term_id = int(term_id)
         term = Term().fetch(id=term_id)
@@ -72,16 +72,11 @@ def get_stats_annotations(params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
-        print("""\n     -------------------- Annotations Stats --------------------\n""")
-
         annotations = AnnotationCollection()
         annotations.project = params.cytomine_id_project
 
-        # Busqueda o bien por ID de anotación o bien por término
-        
-        if not(params.cytomine_id_annotation == None):
-            annotations.id = params.cytomine_id_annotation
-        else:
+        #Si se especifica termino
+        if params.terms_to_analyze != None:
             annotations.term = params.terms_to_analyze
 
         # Se especifica imagen o se busca en todas
@@ -94,37 +89,27 @@ def get_stats_annotations(params):
         annotations.showTerm = True
         annotations.fetch()
 
+        filtered_annotations = []
+
         for annotation in annotations:
-            print("ID: {} | Image: {} | Project: {} | User: {} | Term: {} | Area: {} | Perimeter: {} | WKT: Polygon".format(
-                annotation.id,
-                annotation.image,
-                annotation.project,
-                annotation.user,
-                annotation.term,
-                annotation.area,
-                annotation.perimeter,
-                # annotation.location
-            ))
+            if params.cytomine_id_annotation == annotation.id:
+                filtered_annotations.append(annotation)
 
         if len(annotations) == 0:
             print("No se han encontrado anotaciones para los parámetros dados")
 
-        return annotations
-
+        if params.cytomine_id_annotation == None:
+            return annotations
+        else:
+            return filtered_annotations
 
 def get_results(params):
-
-        print("""\n     ------------------------ UserJobs -------------------------\n""")
 
         userjobs = UserJobCollection()
         userjobs.fetch_with_filter("project", params.cytomine_id_project)
 
         userjobs_l = []
         [userjobs_l.append(userjob.id) for userjob in userjobs];
-        print(userjobs_l)
-
-
-        print("""\n     ------------------------- Results -------------------------\n""")
 
         results = AnnotationCollection()
 
@@ -157,8 +142,6 @@ def get_results(params):
         return results
 
 def get_stats(annotations, results):
-
-    print("""\n     -------------------------- Stats --------------------------\n""")
 
     stats = []
     for annotation in annotations:
@@ -202,7 +185,6 @@ def get_stats(annotations, results):
         annotation_dict.update({"general_info": general_dict})
         stats.append(annotation_dict)
 
-    print(stats)
     if len(stats) == 0:
         print("No se han podido calcular las estadísticas con los parámetros dados")
 
@@ -232,8 +214,6 @@ def load_annotation_properties(stats, params):
         return print("Done")
 
 def generate_rows(stats, params):
-
-    print("""\n     ------------------- Generating CSV file -------------------\n""")
 
     rows = []
     for stat in stats:
@@ -297,14 +277,14 @@ def run(cyto_job, parameters):
         job.update(progress=90, statusComment="Generating .CSV file")
         rows = generate_rows(stats, parameters)
 
-        
+
         output_path = os.path.join(working_path, "stats.csv")
         f= open(output_path,"w+")
         writer = csv.writer(f)
         writer.writerows(rows)
-        f.close() 
+        f.close()
 
-        
+
         job_data = JobData(job.id, "stats", "stats.csv").save()
         job_data.upload(output_path)
 
@@ -325,4 +305,3 @@ if __name__ == '__main__':
 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
         run(cyto_job, cyto_job.parameters)
-        

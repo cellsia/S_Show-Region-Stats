@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [CYTOMINE_ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -60,7 +60,10 @@
       "description": "ID de la annotacion (opcional si se selecciona un término)",
       "set-by-server": false,
       "optional": true,
-      "type": "Number" 
+      "type": "Number",
+      "uri":"/api/annotation.json?&project=$surrentProject$",
+      "uri-print-attribute":"id",
+      "uri-sort-attribute":"id"
     },
     {
       "name": "terms_to_analyze",
