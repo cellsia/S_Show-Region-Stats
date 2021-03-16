@@ -6,7 +6,7 @@ import os
 import cytomine
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, UserJobCollection, JobData
-from cytomine.models.software import SoftwareCollection, JobDataCollection
+from cytomine.models.software import JobCollection
 
 __version__ = "1.0.6"
 
@@ -43,8 +43,9 @@ def _get_json_results(cyto_job, params):
     userjobs_l = [userjob.id for userjob in userjobs]
     print(userjobs_l)
 
-    software = SoftwareCollection.fetch_with_filter(key="project", value=params.cytomine_id_project)
-
+    software = JobCollection()
+    software.project = params.cytomine_id_project
+    software.fetch()
     """job = cyto_job.job
 
     results = JobDataCollection().fetch_with_filter("job", job.id)"""
