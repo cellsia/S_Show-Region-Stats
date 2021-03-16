@@ -43,7 +43,9 @@ def _get_json_results(params):
 
     for job_id in userjobs_l:
         filename =  'detections-' + str(job_id) + '.json'
-        jobdata = JobData().fetch(job_id).download(filename)
+        jobdata = JobData()
+        jobdata.id = job_id
+        jobdata.fetch()
         print(jobdata)
     return None
 
