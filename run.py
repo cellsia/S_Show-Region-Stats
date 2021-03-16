@@ -5,7 +5,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection
+from cytomine.models import AnnotationCollection, Job
 
 __version__ = "1.0.6"
 
@@ -28,11 +28,7 @@ def _get_stats_annotations(params):
         annotations.showTerm = True
         annotations.fetch()
 
-        filtered_annotations = []
-
-        for annotation in annotations:
-            if params.cytomine_id_annotation == annotation.id:
-                filtered_annotations.append(annotation)
+        filtered_annotations = [annotation for annotation in annotations if (params.cytomine_id_annotation==annotation.id)]
 
         if params.cytomine_id_annotation == None:
             return annotations
@@ -58,6 +54,7 @@ def run(cyto_job, parameters):
         annotations = _get_stats_annotations(parameters)
         if len(annotations) == 0:
             logging.info("No se han podido obtener anotaciones con los parámetros seleccionados")
+            job.update(progress=100, status=Job.FAILED, statusComment="Terminated") 
         else:
             logging.info("Stats annotations collected")
 
