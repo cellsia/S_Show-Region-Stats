@@ -41,12 +41,12 @@ def _get_json_results(params):
     userjobs.fetch_with_filter("project", params.cytomine_id_project)
     userjobs_l = [userjob.id for userjob in userjobs]
 
-    for job_id in userjobs_l:
-        filename =  'detections-' + str(job_id) + '.json'
-        jobdata = JobData()
-        jobdata.id = job_id
-        jobdata.fetch()
-        print(jobdata)
+    
+    filename =  'detections-' + str(job_id) + '.json'
+    jobdata = JobData()
+    jobdata.id = userjobs_l
+    jobdata.fetch()
+    print(jobdata)
     return None
 
 def run(cyto_job, parameters):
