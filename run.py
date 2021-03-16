@@ -43,12 +43,13 @@ def _get_json_results(cyto_job, params):
     userjobs_l = [userjob.id for userjob in userjobs]
     print(userjobs_l)
 
-    software = JobCollection()
-    software.project = params.cytomine_id_project
-    software.fetch()
-    """job = cyto_job.job
+    jobs = JobCollection()
+    jobs.project = params.cytomine_id_project
+    jobs.fetch()
+    jobs_ids = [job.id for job in jobs]
+    print(jobs_ids)
 
-    results = JobDataCollection().fetch_with_filter("job", job.id)"""
+    #results = JobDataCollection().fetch_with_filter("job", job.id)
 
     return None
 
