@@ -43,6 +43,31 @@ def _get_json_results(cyto_job, params):
     userjobs_l = [userjob.id for userjob in userjobs]
     print(userjobs_l)
 
+   results = AnnotationCollection()
+
+    # O búsqueda de imagen o todas
+    if not(params.images_to_analyze == None):
+        results.image = params.images_to_analyze
+    else:
+        results.project = params.cytomine_id_project
+
+    results.users= userjobs_l
+    results.showWKT = True
+    results.showMeta = True
+    results.showGIS = True
+    results.showTerm = True
+    results.fetch()
+
+    for result in results:
+        print("ID: {} | Image: {} | Project: {} | Term: {} | User: {} | WKT: MultiPoint".format(
+            result.id,
+            result.image,
+            result.project,
+            result.term,
+            result.user,
+            # result.location
+        ))
+
     job = cyto_job.job
 
     results = JobDataCollection().fetch_with_filter("job", job.id)
