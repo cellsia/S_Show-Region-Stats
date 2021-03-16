@@ -5,7 +5,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, Job
+from cytomine.models import AnnotationCollection, UserJobCollection, JobData
 
 __version__ = "1.0.6"
 
@@ -35,6 +35,18 @@ def _get_stats_annotations(params):
         else:
             return filtered_annotations
 
+def _get_json_results(params):
+
+    userjobs = UserJobCollection()
+    userjobs.fetch_with_filter("project", params.cytomine_id_project)
+    userjobs_l = [userjob.id for userjob in userjobs]
+
+    for job_id in userjobs_l:
+        filename =  'detections-' + str(job_id) + '.json'
+        jobdata = JobData().fetch(job_id).download(filename)
+        
+    return None
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -57,6 +69,11 @@ def run(cyto_job, parameters):
         else:
             logging.info("Stats annotations collected")
             
+
+        job.update(progress=15, statusComment="Collect Json Results")
+        results = _get_json_results(parameters)
+
+
         job.update(progress=100, statusComment="Terminated")
     
     finally:
