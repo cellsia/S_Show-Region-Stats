@@ -45,8 +45,8 @@ def _get_json_results(cyto_job, params):
 
     job = cyto_job.job
 
-    results = JobData()
-    results.id = userjobs_l[0]
+    results = JobDataCollection()
+    results.users = userjobs_l
     results.fetch()
     #results = JobDataCollection().fetch_with_filter("job", job.id)
 
