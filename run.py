@@ -42,7 +42,7 @@ def _get_json_results(params):
     userjobs_l = [userjob.id for userjob in userjobs]
 
     
-    filename =  'detections-' + str(job_id) + '.json'
+    #filename =  'detections-' + str(job_id) + '.json'
     jobdata = JobData()
     jobdata.id = userjobs_l
     jobdata.fetch()
