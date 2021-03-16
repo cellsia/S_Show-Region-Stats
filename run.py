@@ -5,7 +5,8 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, UserJobCollection, JobDataCollection
+from cytomine.models import AnnotationCollection, UserJobCollection
+from cytomine.models.software import JobDataCollection
 
 __version__ = "1.0.6"
 
