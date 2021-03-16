@@ -4,11 +4,40 @@ import sys
 import os
 
 import cytomine
+from cytomine import Cytomine
+from cytomine.models import AnnotationCollection
 
 __version__ = "1.0.6"
 
 def _get_stats_annotations(params)
-    return None
+
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+
+        annotations = AnnotationCollection()
+        annotations.project = params.cytomine_id_project
+
+        if params.terms_to_analyze != None:
+            annotations.term = params.terms_to_analyze
+
+        if params.images_to_analyze != None:
+            annotations.image = params.images_to_analyze
+
+        annotations.showWKT = True
+        annotations.showMeta = True
+        annotations.showGIS = True
+        annotations.showTerm = True
+        annotations.fetch()
+
+        filtered_annotations = []
+
+        for annotation in annotations:
+            if params.cytomine_id_annotation == annotation.id:
+                filtered_annotations.append(annotation)
+
+        if params.cytomine_id_annotation == None:
+            return annotations
+        else:
+            return filtered_annotations
 
 def run(cyto_job, parameters):
 
@@ -27,7 +56,10 @@ def run(cyto_job, parameters):
 
         job.update(progress=0, statusComment="Collect Stats annotations")
         annotations = _get_stats_annotations(parameters)
-        loggin.info("Stats annotations collected")
+        if len(annotations) == 0:
+            logging.info("No se han podido obtener anotaciones con los parámetros seleccionados")
+        else:
+            logging.info("Stats annotations collected")
 
         job.update(progress=100, statusComment="Terminated")
     
