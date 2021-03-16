@@ -36,15 +36,11 @@ def _get_stats_annotations(params):
         else:
             return filtered_annotations
 
-def _get_json_results(params):
+def _get_json_results(cyto_job, params):
 
-    userjobs = UserJobCollection()
-    userjobs.fetch_with_filter("project", params.cytomine_id_project)
-    userjobs_l = [userjob.id for userjob in userjobs]
+        job = cyto_job.job
 
-    for job_id in userjobs_l:
-        results = JobDataCollection()
-        results.fetch_with_filter("job", job_id)
+        results = JobDataCollection().fetch_with_filter("job", job.id)
 
     return None
 
@@ -72,7 +68,7 @@ def run(cyto_job, parameters):
             
 
         job.update(progress=15, statusComment="Collect Json Results")
-        results = _get_json_results(parameters)
+        results = _get_json_results(cyto_job, parameters)
 
 
         job.update(progress=100, statusComment="Terminated")
