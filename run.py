@@ -38,9 +38,9 @@ def _get_stats_annotations(params):
 
 def _get_json_results(cyto_job, params):
 
-        job = cyto_job.job
+    job = cyto_job.job
 
-        results = JobDataCollection().fetch_with_filter("job", job.id)
+    results = JobDataCollection().fetch_with_filter("job", job.id)
 
     return None
 
