@@ -43,7 +43,7 @@ def _get_json_results(cyto_job, params):
     userjobs_l = [userjob.id for userjob in userjobs]
     print(userjobs_l)
 
-   results = AnnotationCollection()
+    results = AnnotationCollection()
 
     # O búsqueda de imagen o todas
     if not(params.images_to_analyze == None):
