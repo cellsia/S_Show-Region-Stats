@@ -41,11 +41,9 @@ def _get_json_results(params):
     userjobs.fetch_with_filter("project", params.cytomine_id_project)
     userjobs_l = [userjob.id for userjob in userjobs]
 
-    
-    #filename =  'detections-' + str(job_id) + '.json'
-    jobdata = JobData()
-    jobdata.id = userjobs_l
-    jobdata.fetch()
+    for userjob in userjobs:
+        print(userjob.id)
+        print(userjob.job)
     print(jobdata)
     return None
 
