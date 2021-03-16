@@ -40,7 +40,7 @@ def _get_json_results(cyto_job, params):
 
     userjobs = UserJobCollection()
     userjobs.fetch_with_filter("project", params.cytomine_id_project)
-    userjobs_l = [userjob.job for userjob in userjobs]
+    userjobs_l = [userjob.callback_identifier for userjob in userjobs]
     print(userjobs_l)
 
     job = cyto_job.job
