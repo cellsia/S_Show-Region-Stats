@@ -43,7 +43,7 @@ def _get_json_results(cyto_job, params):
     userjobs_l = [userjob.id for userjob in userjobs]
     print(userjobs_l)
 
-    software = SoftwareCollection.fetch_with_filter("project", params.cytomine_id_project)
+    software = SoftwareCollection.fetch_with_filter(params.cytomine_id_project)
 
     """job = cyto_job.job
 
