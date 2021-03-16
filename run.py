@@ -54,10 +54,10 @@ def run(cyto_job, parameters):
         annotations = _get_stats_annotations(parameters)
         if len(annotations) == 0:
             logging.info("No se han podido obtener anotaciones con los parámetros seleccionados")
-            job.update(progress=100, status=Job.FAILED, statusComment="Terminated") 
         else:
             logging.info("Stats annotations collected")
-            job.update(progress=100, statusComment="Terminated")
+            
+        job.update(progress=100, statusComment="Terminated")
     
     finally:
         logging.info("Deleting folder %s", working_path)
