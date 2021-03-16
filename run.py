@@ -9,7 +9,7 @@ from cytomine.models import AnnotationCollection
 
 __version__ = "1.0.6"
 
-def _get_stats_annotations(params)
+def _get_stats_annotations(params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
