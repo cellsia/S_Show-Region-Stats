@@ -8,8 +8,9 @@ import os
 import cytomine
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, PropertyEditor
-from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection
+from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, Job
 from cytomine.models.annotation import Annotation
+from cytomine.models.ontology import TermCollection
 from shapely.geometry import MultiPoint
 
 __version__ = "1.0.6"
@@ -48,7 +49,7 @@ def get_json_results(params):
     jobs.project = params.cytomine_id_project
     jobs.fetch()
     jobs_ids = [job.id for job in jobs]
-    equiv = {}
+    equiv, equiv2 = {}, {}
 
     for job_id in jobs_ids:
 
@@ -63,6 +64,8 @@ def get_json_results(params):
             for param in jobparamscol:
                 if str(param).split(" : ")[1] in ["cytomine_image"]:
                     equiv.update({filename:int(param.value)})
+                if str(param).split(" : ")[1] in ["cytomine_id_term"]:
+                    equiv2.update({filename:param.value})
 
             if "detections" in filename:
                 try:
@@ -77,10 +80,11 @@ def get_json_results(params):
             filename = temp_files[i]
             try:
                 image = equiv[filename]
+                terms = equiv2[filename]
                 with open("tmp/"+filename, 'r') as json_file:
                     data = json.load(json_file)
                     json_file.close()
-                results.append({"image":image, "data":data})
+                results.append({"image":image, "terms":terms ,"data":data})
             except KeyError:
                 continue
 
@@ -159,7 +163,7 @@ def get_stats(annotations, results):
                         "conteo_{}_anotacion".format(key):cter
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
-        inside_points_l.append([annotation.id,inside_points])
+        inside_points_l.append([annotation.id, inside_points, result["terms"]])
         stats.update({annotation.id:annotation_dict})
 
     return stats, inside_points_l
@@ -200,7 +204,8 @@ def load_multipoints(job, inside_points_l):
     for item in inside_points_l:
         annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
-        terms = annotation.terms
+        terms = item[2].rstrip(']').lstrip('[').split(',')
+
         _load_multi_class_points(job, image, terms, item[1])
 
     return None
@@ -236,7 +241,7 @@ def run(cyto_job, parameters):
 
         job.update(progress=30, statusComment="Calculate Stats")
         stats, inside_points_l = get_stats(anotaciones, resultados)
-        
+
         if len(stats) == 0:
             logging.info("No se han podido obtener estadísticas para los parámetros seleccionados")
         else:
@@ -266,7 +271,7 @@ def run(cyto_job, parameters):
 
         job.update(progress=80, statusComment="Generate Multipoint annotations")
         load_multipoints(job, inside_points_l)
-    
+
         job.update(progress=100, statusComment="Terminated")
 
     finally:
