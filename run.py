@@ -46,8 +46,8 @@ def _get_json_results(params):
     for job_id in jobs_ids:
 
         jobdata = JobDataCollection().fetch_with_filter(key="job", value=job_id)
-        filename = 'detections-' + str(job_id) + '.json'
-        jobdata.download(filename)
+        for job in jobdata:
+            print(job)
 
     return None
 
