@@ -73,7 +73,18 @@ def _get_json_results(params):
 
     return results
 
+def _process_polygon(polygon):
+    pol = polygon[8:].lstrip('((').rstrip('))').split(',')
+    for i in range(0, len(pol)):
+        pol[i] = pol[i].lstrip(' ').split(' ')
+    return pol
+
 def _get_stats(annotations, results):
+
+    for annotation in annotations:
+        polygon = _process_polygon(annotation.location)
+
+        print(polygon)
 
     return None
 
