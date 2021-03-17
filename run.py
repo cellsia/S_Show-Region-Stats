@@ -7,7 +7,7 @@ import os
 import cytomine
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection
-from cytomine.models.software import JobCollection, JobDataCollection, JobData
+from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, JobParameter
 
 __version__ = "1.0.6"
 
@@ -45,13 +45,22 @@ def _get_json_results(params):
     jobs.project = params.cytomine_id_project
     jobs.fetch()
     jobs_ids = [job.id for job in jobs]
+    equiv = {}
 
     for job_id in jobs_ids:
 
+        jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
         jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
+
         for job in jobdatacol:
+
             jobdata = JobData().fetch(job.id)
             filename = jobdata.filename
+
+            for param in jobparamscol:
+                if str(param).split(" : ")[1] in ["cytomine_image"]:
+                    equiv.update({filename:int(param.value)})
+
             if "detections" in filename:
                 try:
                     jobdata.download(os.path.join("tmp/", filename))
@@ -63,11 +72,14 @@ def _get_json_results(params):
     for i in range(0, len(temp_files)):
         if temp_files[i][-4:] == "json":
             filename = temp_files[i]
-            id = filename[len("detection")+2:-5]
-            with open("tmp/"+filename, 'r') as json_file:
-                data = json.load(json_file)
-                json_file.close()
-            results.append({"id":id, "data":data})
+            try:
+                image = equiv[filename]
+                with open("tmp/"+filename, 'r') as json_file:
+                    data = json.load(json_file)
+                    json_file.close()
+                results.append({"image":image, "data":data})
+            except KeyError:
+                continue
 
     os.system("cd tmp&&rm detections*")
 
@@ -81,12 +93,30 @@ def _process_polygon(polygon):
 
 def _get_stats(annotations, results):
 
+    stats = {}
+
     for annotation in annotations:
+
+        annotation_dict = {}
         polygon = _process_polygon(annotation.location)
 
-        print(polygon)
+        for result in results:
+            if result["image"] == annotation.image:
 
-    return None
+                points = result["data"]
+                image_info, global_cter = {}, 0
+                for key, value in points.items():
+                    count = len(points[key])
+                    global_cter+=count
+                    image_info.update({"conteo_[{}]".format(key):count})
+
+                image_info.update({"global_counter":global_cter})
+                annotation_dict.update({"image_info":image_info})
+
+        stats.update({annotation.id:annotation_dict})
+
+    print(stats)
+    return stats
 
 def run(cyto_job, parameters):
 
@@ -120,6 +150,12 @@ def run(cyto_job, parameters):
         job.update(progress=30, statusComment="Calculate Stats")
         stats = _get_stats(anotaciones, resultados)
         anotaciones, resultados = None, None
+        if len(stats) == 0:
+            logging.info("No se han podido obtener estadísticas para los parámetros seleccionados")
+        else:
+            logging.info("Stats collected")
+
+        job.update(progress=60, statusComment="Updating Annotaion Properties")
 
         job.update(progress=100, statusComment="Terminated")
 
