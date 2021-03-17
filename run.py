@@ -139,10 +139,10 @@ def get_stats(annotations, results):
                 for key, value in points.items():
                     count = len(value)
                     global_cter+=count
-                    image_info.update({"conteo_[{}]".format(key):count})
+                    image_info.update({"conteo_{}_imagen".format(key):count})
 
-                image_info.update({"global_counter":global_cter})
-                annotation_dict.update({"image_info":image_info})
+                image_info.update({"conteo_total_imagen":global_cter})
+                annotation_dict.update({"info_imagen":image_info})
 
                 for key, value in points.items():
                     ins_p = []
@@ -154,9 +154,9 @@ def get_stats(annotations, results):
                             cter+=1
                     inside_points.update({key:ins_p})
                     particular_info ={
-                        "counter":cter
+                        "conteo_{}_anotacion".format(key):cter
                     }
-                    annotation_dict.update({"annotation_info_[{}]".format(key):particular_info})
+                    annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id,inside_points])
         stats.update({annotation.id:annotation_dict})
 
