@@ -142,6 +142,7 @@ def get_stats(annotations, results):
                     image_info.update({"conteo_{}_imagen".format(key):count})
 
                 image_info.update({"conteo_total_imagen":global_cter})
+                image_info.update({"area_anotacion":annotation.area})
                 annotation_dict.update({"info_imagen":image_info})
 
                 for key, value in points.items():
