@@ -152,7 +152,7 @@ def _get_stats(annotations, results):
                     particular_info ={
                         "counter":cter
                     }
-                    annotation_dict.update({"particular_info_[{}]".format(key):particular_info)
+                    annotation_dict.update({"annotation_info_[{}]".format(key):particular_info})
 
         stats.update({annotation.id:annotation_dict})
 
@@ -196,7 +196,8 @@ def run(cyto_job, parameters):
         else:
             logging.info("Stats collected")
 
-        job.update(progress=60, statusComment="Updating Annotaion Properties")
+        job.update(progress=60, statusComment="Generating JSON Stats File")
+        
 
         job.update(progress=100, statusComment="Terminated")
 
