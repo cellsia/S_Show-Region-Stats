@@ -1,5 +1,6 @@
 import logging
 import shutil
+import json
 import sys
 import os
 
@@ -38,6 +39,8 @@ def _get_stats_annotations(params):
 
 def _get_json_results(params):
 
+    results = []
+
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
@@ -45,9 +48,32 @@ def _get_json_results(params):
 
     for job_id in jobs_ids:
 
-        jobdata = JobDataCollection().fetch_with_filter(key="job", value=job_id)
-        for job in jobdata:
-            print(job)
+        jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
+        for job in jobdatacol:
+            jobdata = JobData().fetch(job.id)
+            filename = jobdata.filename
+            if "detections" in filename:
+                try:
+                    jobdata.download(os.path.join("tmp/", filename))
+
+                except AttributeError:
+                    continue
+
+    temp_files = os.listdir("tmp")
+    for i in range(0, len(temp_files)):
+        if temp_files[i][-4:] == "json":
+            filename = temp_files[i]
+            id = filename[len("detection")+2:-5]
+            with open("tmp/"+filename, 'r') as json_file:
+                data = json.load(json_file)
+                json_file.close()
+            results.append({"id":id, "data":data})
+
+    os.system("cd tmp&&rm detections*")
+
+    return results
+
+def _get_stats(annotations, results):
 
     return None
 
@@ -67,19 +93,25 @@ def run(cyto_job, parameters):
     try:
 
         job.update(progress=0, statusComment="Collect Stats annotations")
-        annotations = _get_stats_annotations(parameters)
-        if len(annotations) == 0:
-            logging.info("No se han podido obtener anotaciones con los parámetros seleccionados")
+        anotaciones = _get_stats_annotations(parameters)
+        if len(anotaciones) == 0:
+            logging.info("No se han podido obtener anotaciones para los parámetros seleccionados")
         else:
             logging.info("Stats annotations collected")
-            
 
         job.update(progress=15, statusComment="Collect Json Results")
-        results = _get_json_results(parameters)
+        resultados = _get_json_results(parameters)
+        if len(resultados) == 0:
+            logging.info("No se han podido obtener resultados para los parámetros seleccionados")
+        else:
+            logging.info("Results collected")
 
+        job.update(progress=30, statusComment="Calculate Stats")
+        stats = _get_stats(anotaciones, resultados)
+        anotaciones, resultados = None, None
 
         job.update(progress=100, statusComment="Terminated")
-    
+
     finally:
         logging.info("Deleting folder %s", working_path)
         shutil.rmtree(working_path, ignore_errors=True)
