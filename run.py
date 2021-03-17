@@ -45,8 +45,9 @@ def _get_json_results(params):
 
     for job_id in jobs_ids:
 
-        jobdata = JobData().fetch(job_id)
-        
+        jobdata = JobDataCollection().fetch_with_filter(key="job", value=job_id)
+        for job in jobdata:
+            print(job)
 
     return None
 
