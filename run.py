@@ -197,7 +197,15 @@ def run(cyto_job, parameters):
             logging.info("Stats collected")
 
         job.update(progress=60, statusComment="Generating JSON Stats File")
-        
+        output_path = os.path.join(working_path, "stats.json")
+        f = open(output_path, "w+")
+        json.dump(stats, f)
+        f.close()
+
+        job_data = JobData(job.id, "stats", "stats.json").save()
+        job_data.upload(output_path)
+
+        job.update(progress=65, statusComment="Generating JSON  with annotation inside points")
 
         job.update(progress=100, statusComment="Terminated")
 
