@@ -218,6 +218,7 @@ def run(cyto_job, parameters):
             job_data.upload(output_path2)
 
         job.update(progress=70, statusComment="Update annotation properties")
+        
 
         job.update(progress=100, statusComment="Terminated")
 
