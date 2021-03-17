@@ -1,3 +1,4 @@
+import numpy as np
 import logging
 import shutil
 import json
@@ -91,6 +92,35 @@ def _process_polygon(polygon):
         pol[i] = pol[i].lstrip(' ').split(' ')
     return pol
 
+def _process_points(points):
+    pts = [[p["x"],p["y"]] for p in points]
+    return pts
+
+def _is_inside(point, polygon):
+
+    v_list = []
+    for vert in polygon:
+        vector = [0,0]
+        vector[0] = float(vert[0]) - float(point[0])
+        vector[1] = float(vert[1]) - float(point[1])
+        v_list.append(vector)
+
+    v_list.append(v_list[0])
+
+    angle = 0
+    for i in range(0, len(v_list)-1):
+        v1 = v_list[i]
+        v2 = v_list[i+1]
+        unit_v1 = v1 / np.linalg.norm(v1)
+        unit_v2 = v2 / np.linalg.norm(v2)
+        dot_prod = np.dot(unit_v1, unit_v2)
+        angle += np.arccos(dot_prod)
+
+    if round(angle,4) == 6.2832:
+        return True
+    else:
+        return False
+
 def _get_stats(annotations, results):
 
     stats = {}
@@ -106,12 +136,23 @@ def _get_stats(annotations, results):
                 points = result["data"]
                 image_info, global_cter = {}, 0
                 for key, value in points.items():
-                    count = len(points[key])
+                    count = len(value)
                     global_cter+=count
                     image_info.update({"conteo_[{}]".format(key):count})
 
                 image_info.update({"global_counter":global_cter})
                 annotation_dict.update({"image_info":image_info})
+
+                for key, value in points.items():
+                    pts = _process_points(value)
+                    cter = 0
+                    for p in pts:
+                        if _is_inside(p, polygon):
+                            cter+=1
+                    particular_info ={
+                        "counter":cter
+                    }
+                    annotation_dict.update({"particular_info_[{}]".format(key):particular_info)
 
         stats.update({annotation.id:annotation_dict})
 
