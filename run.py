@@ -160,7 +160,8 @@ def get_stats(annotations, results):
                             cter+=1
                     inside_points.update({key:ins_p})
                     particular_info ={
-                        "conteo_{}_anotacion".format(key):cter
+                        "conteo_{}_anotacion".format(key):cter,
+                        "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points, result["terms"]])
@@ -189,7 +190,7 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: dict) -> None:
+def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict) -> None:
 
     annotations = AnnotationCollection()
     for idx, points in enumerate(detections.values()):
@@ -204,6 +205,7 @@ def load_multipoints(job, inside_points_l):
     for item in inside_points_l:
         annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
+        id = annotation.id
         terms = item[2].rstrip(']').lstrip('[').split(',')
 
         _load_multi_class_points(job, image, terms, item[1])
