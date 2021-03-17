@@ -195,13 +195,13 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
 
     annotations.save()
 
-def load_multipoints(job, stats, params):
+def load_multipoints(job, inside_points_l):
 
-    for key, value in stats.items():
-        annotation = Annotation().fetch(id=int(key))
+    for item in inside_points_l:
+        annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
         terms = annotation.terms
-        _load_multi_class_points(job, image, terms, value)
+        _load_multi_class_points(job, image, terms, item[1])
 
     return None
 
@@ -265,7 +265,7 @@ def run(cyto_job, parameters):
         update_properties(stats)
 
         job.update(progress=80, statusComment="Generate Multipoint annotations")
-        load_multipoints(job, stats, parameters)
+        load_multipoints(job, inside_points_l)
     
         job.update(progress=100, statusComment="Terminated")
 
