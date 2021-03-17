@@ -8,7 +8,7 @@ import os
 import cytomine
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, PropertyEditor
-from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, JobParameter
+from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection
 from cytomine.models.annotation import Annotation
 
 __version__ = "1.0.6"
