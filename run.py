@@ -7,12 +7,13 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection
+from cytomine.models import AnnotationCollection, PropertyEditor
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, JobParameter
+from cytomine.models.annotation import Annotation
 
 __version__ = "1.0.6"
 
-def _get_stats_annotations(params):
+def get_stats_annotations(params):
 
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
@@ -38,7 +39,7 @@ def _get_stats_annotations(params):
         else:
             return filtered_annotations
 
-def _get_json_results(params):
+def get_json_results(params):
 
     results = []
 
@@ -86,17 +87,17 @@ def _get_json_results(params):
 
     return results
 
-def _process_polygon(polygon):
+def process_polygon(polygon):
     pol = polygon[8:].lstrip('((').rstrip('))').split(',')
     for i in range(0, len(pol)):
         pol[i] = pol[i].lstrip(' ').split(' ')
     return pol
 
-def _process_points(points):
+def process_points(points):
     pts = [[p["x"],p["y"]] for p in points]
     return pts
 
-def _is_inside(point, polygon):
+def is_inside(point, polygon):
 
     v_list = []
     for vert in polygon:
@@ -121,14 +122,14 @@ def _is_inside(point, polygon):
     else:
         return False
 
-def _get_stats(annotations, results):
+def get_stats(annotations, results):
 
     stats = {}
     inside_points_l = []
 
     for annotation in annotations:
         annotation_dict, inside_points = {}, {}
-        polygon = _process_polygon(annotation.location)
+        polygon = process_polygon(annotation.location)
 
         for result in results:
             if result["image"] == annotation.image:
@@ -145,10 +146,10 @@ def _get_stats(annotations, results):
 
                 for key, value in points.items():
                     ins_p = []
-                    pts = _process_points(value)
+                    pts = process_points(value)
                     cter = 0
                     for p in pts:
-                        if _is_inside(p, polygon):
+                        if is_inside(p, polygon):
                             ins_p.append({"x":p[0], "y":p[1]})
                             cter+=1
                     inside_points.update({key:ins_p})
@@ -160,6 +161,19 @@ def _get_stats(annotations, results):
         stats.update({annotation.id:annotation_dict})
 
     return stats, inside_points_l
+
+def update_properties(stats):
+    for id, dic in stats.items():
+        prop = {}
+        annotation = Annotation().fetch(id=int(id))
+        for key, value in dic.items():
+            for key2, value2 in value.items():
+                prop.update({key2:value2})
+
+        for k, v in prop.items():
+            PropertyEditor.PropertyEditor(annotation).add_property(k, v)
+
+    return None
 
 def run(cyto_job, parameters):
 
@@ -177,22 +191,22 @@ def run(cyto_job, parameters):
     try:
 
         job.update(progress=0, statusComment="Collect Stats annotations")
-        anotaciones = _get_stats_annotations(parameters)
+        anotaciones = get_stats_annotations(parameters)
         if len(anotaciones) == 0:
             logging.info("No se han podido obtener anotaciones para los parámetros seleccionados")
         else:
             logging.info("Stats annotations collected")
 
         job.update(progress=15, statusComment="Collect Json Results")
-        resultados = _get_json_results(parameters)
+        resultados = get_json_results(parameters)
         if len(resultados) == 0:
             logging.info("No se han podido obtener resultados para los parámetros seleccionados")
         else:
             logging.info("Results collected")
 
         job.update(progress=30, statusComment="Calculate Stats")
-        stats, inside_points_l = _get_stats(anotaciones, resultados)
-        anotaciones, resultados = None, None
+        stats, inside_points_l = get_stats(anotaciones, resultados)
+        #anotaciones, resultados = None, None
         if len(stats) == 0:
             logging.info("No se han podido obtener estadísticas para los parámetros seleccionados")
         else:
@@ -218,7 +232,8 @@ def run(cyto_job, parameters):
             job_data.upload(output_path2)
 
         job.update(progress=70, statusComment="Update annotation properties")
-        
+        update_properties(stats)
+
 
         job.update(progress=100, statusComment="Terminated")
 
