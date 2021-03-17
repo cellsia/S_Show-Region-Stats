@@ -10,6 +10,7 @@ from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, PropertyEditor
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection
 from cytomine.models.annotation import Annotation
+from shapely.geometry import MultiPoint
 
 __version__ = "1.0.6"
 
@@ -176,6 +177,34 @@ def update_properties(stats):
 
     return None
 
+def _generate_multipoints(detections: list) -> MultiPoint:
+
+    points = []
+    for detection in detections:
+        points.append((detection['x'], detection['y']))
+
+    return MultiPoint(points=points)
+
+def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: dict) -> None:
+
+    annotations = AnnotationCollection()
+    for idx, points in enumerate(detections.values()):
+
+        multipoint = _generate_multipoints(points)
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
+
+    annotations.save()
+
+def load_multipoints(job, stats, params):
+
+    for key, value in stats.items():
+        annotation = Annotation().fetch(id=int(key))
+        image = annotation.image
+        terms = annotation.terms
+        _load_multi_class_points(job, image, terms, value)
+
+    return None
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -207,7 +236,7 @@ def run(cyto_job, parameters):
 
         job.update(progress=30, statusComment="Calculate Stats")
         stats, inside_points_l = get_stats(anotaciones, resultados)
-        #anotaciones, resultados = None, None
+        
         if len(stats) == 0:
             logging.info("No se han podido obtener estadísticas para los parámetros seleccionados")
         else:
@@ -235,7 +264,9 @@ def run(cyto_job, parameters):
         job.update(progress=70, statusComment="Update annotation properties")
         update_properties(stats)
 
-
+        job.update(progress=80, statusComment="Generate Multipoint annotations")
+        load_multipoints(job, stats, parameters)
+    
         job.update(progress=100, statusComment="Terminated")
 
     finally:
