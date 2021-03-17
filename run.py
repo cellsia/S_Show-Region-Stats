@@ -124,10 +124,10 @@ def _is_inside(point, polygon):
 def _get_stats(annotations, results):
 
     stats = {}
+    inside_points_l = []
 
     for annotation in annotations:
-
-        annotation_dict = {}
+        annotation_dict, inside_points = {}, {}
         polygon = _process_polygon(annotation.location)
 
         for result in results:
@@ -144,20 +144,22 @@ def _get_stats(annotations, results):
                 annotation_dict.update({"image_info":image_info})
 
                 for key, value in points.items():
+                    ins_p = []
                     pts = _process_points(value)
                     cter = 0
                     for p in pts:
                         if _is_inside(p, polygon):
+                            ins_p.append({"x":p[0], "y":p[1]})
                             cter+=1
+                    inside_points.update({key:ins_p})
                     particular_info ={
                         "counter":cter
                     }
                     annotation_dict.update({"annotation_info_[{}]".format(key):particular_info})
-
+        inside_points_l.append([annotation.id,inside_points])
         stats.update({annotation.id:annotation_dict})
 
-    print(stats)
-    return stats
+    return stats, inside_points_l
 
 def run(cyto_job, parameters):
 
@@ -189,7 +191,7 @@ def run(cyto_job, parameters):
             logging.info("Results collected")
 
         job.update(progress=30, statusComment="Calculate Stats")
-        stats = _get_stats(anotaciones, resultados)
+        stats, inside_points_l = _get_stats(anotaciones, resultados)
         anotaciones, resultados = None, None
         if len(stats) == 0:
             logging.info("No se han podido obtener estadísticas para los parámetros seleccionados")
@@ -206,6 +208,16 @@ def run(cyto_job, parameters):
         job_data.upload(output_path)
 
         job.update(progress=65, statusComment="Generating JSON  with annotation inside points")
+        for item in inside_points_l:
+            output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
+            f = open(output_path2, "w+")
+            json.dump(item[1], f)
+            f.close()
+
+            job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
+            job_data.upload(output_path2)
+
+        job.update(progress=70, statusComment="Update annotation properties")
 
         job.update(progress=100, statusComment="Terminated")
 
