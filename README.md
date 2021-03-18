@@ -1,7 +1,6 @@
-# Show Region Stats
-Cytomine plugin to show up statistics from a region-annotation.
+# Show Region 
 
-It contains the descriptor, the Dockerfile and the script itself.
+Script de Cytomine para calcular estadísticas de una región. 
 
-Collaborators:
-- Gonzalo Lardiés (Github: <a href="#">@GonzaloLardies</a>)
+
+Creado por <a href="https://github.com/GonzaloLardies">@GonzaloLardies</a> (gon.lardies.guillen@gmail.com)
