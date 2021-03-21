@@ -1,4 +1,4 @@
-# Show Region 
+# Show Region Stats
 
 Script de Cytomine para calcular estadísticas de una región. 
 
