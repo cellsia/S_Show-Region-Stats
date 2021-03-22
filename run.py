@@ -16,7 +16,7 @@ def get_stats_annotations(params):
     annotations.project = params.cytomine_id_project
     annotations.term = params.terms_to_analyze
 
-    if params.terms_to_analyze != None;
+    if params.terms_to_analyze != None:
         print("Terms is nontype")
 
     print(params.terms_to_analyze)
