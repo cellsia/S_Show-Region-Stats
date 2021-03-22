@@ -91,7 +91,7 @@ def get_results(params):
     return results
 
 def process_polygon(polygon):
-    pol = str(polygon)[8:].rstrip("(").lstrip(")").split(",")
+    pol = str(polygon)[:].rstrip("(").lstrip(")").split(",")
     for i in range(0, len(pol)):
         pol[i] = pol[i].rstrip(" ").lstrip(" ")
         pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
@@ -102,6 +102,8 @@ def process_points(points):
     return pts
 
 def is_inside(point, polygon):
+
+    print(polygon)
 
     v_list = []
     for vert in polygon:
