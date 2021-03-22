@@ -7,7 +7,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, PropertyEditor
+from cytomine.models import AnnotationCollection, PropertyCollection
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, Job
 from cytomine.models.annotation import Annotation
 from cytomine.models.ontology import TermCollection
@@ -44,12 +44,12 @@ def get_stats_annotations(params):
 def get_json_results(params):
 
     results = []
+    equiv, equiv2 = {}, {}
 
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
     jobs_ids = [job.id for job in jobs]
-    equiv, equiv2 = {}, {}
 
     for job_id in jobs_ids:
 
@@ -122,7 +122,7 @@ def is_inside(point, polygon):
         dot_prod = np.dot(unit_v1, unit_v2)
         angle += np.arccos(dot_prod)
 
-    if round(angle,4) == 6.2832:
+    if round(angle, 4) == 6.2832:
         return True
     else:
         return False
@@ -178,7 +178,15 @@ def update_properties(stats):
                 prop.update({key2:value2})
 
         for k, v in prop.items():
-            PropertyEditor.PropertyEditor(annotation).add_property(k, v)
+            current_properties = PropertyCollection(annotation).fetch()
+            current_property = next((p for p in current_properties if p.key == k), None
+            
+            if current_property:
+                current_property.fetch()
+                current_property.value = v 
+                current_property.update()
+            else:
+                Property(annotation, key=k, value=v).save()
 
     return None
 
@@ -199,6 +207,7 @@ def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: 
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
 
     annotations.save()
+    return None
 
 def load_multipoints(job, inside_points_l):
 
@@ -274,6 +283,9 @@ def run(cyto_job, parameters):
         job.update(progress=80, statusComment="Generate Multipoint annotations")
         load_multipoints(job, inside_points_l)
 
+        job.update(progress=90, statusComment="Loading job data")
+        # cargar las dos anotaciones generadas como Job Data
+
         job.update(progress=100, statusComment="Terminated")
 
     finally:
@@ -281,7 +293,6 @@ def run(cyto_job, parameters):
         shutil.rmtree(working_path, ignore_errors=True)
 
         logging.debug("Leaving run()")
-
 
 
 if __name__ == '__main__':
