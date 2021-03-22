@@ -198,28 +198,26 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict, cter: int) -> None:
+def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict) -> None:
 
     annotations = AnnotationCollection()
     for idx, points in enumerate(detections.values()):
 
         multipoint = _generate_multipoints(points)
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]+cter))
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
 
     annotations.save()
     return None
 
 def load_multipoints(job, inside_points_l):
 
-    cter = 0
     for item in inside_points_l:
-        cter+=1
         annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
         id = annotation.id
         terms = item[2].rstrip(']').lstrip('[').split(',')
 
-        _load_multi_class_points(job, image, terms, item[1], cter)
+        _load_multi_class_points(job, image, terms, item[1])
 
     return None
 
@@ -269,7 +267,7 @@ def run(cyto_job, parameters):
         job_data = JobData(job.id, "stats", "stats.json").save()
         job_data.upload(output_path)
 
-        job.update(progress=65, statusComment="Generating JSON  with annotation inside points")
+        job.update(progress=65, statusComment="Generating JSON & annotations with inside points")
         for item in inside_points_l:
             output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
             f = open(output_path2, "w+")
@@ -279,11 +277,18 @@ def run(cyto_job, parameters):
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
             job_data.upload(output_path2)
 
+            with open(output_path2) as json_file:
+                read_file = json.load(json_file)
+
+                annotation = Annotation().fetch(id=int(item[0]))
+                image = annotation.image
+                id = annotation.id
+                terms = item[2].rstrip(']').lstrip('[').split(',')
+
+                _load_multi_class_points(job, image, terms, detections)
+
         job.update(progress=70, statusComment="Update annotation properties")
         update_properties(stats)
-
-        job.update(progress=80, statusComment="Generate Multipoint annotations")
-        load_multipoints(job, inside_points_l)
 
         job.update(progress=90, statusComment="Loading job data")
         # cargar las dos anotaciones generadas como Job Data
