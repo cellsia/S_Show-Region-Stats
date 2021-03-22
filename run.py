@@ -4,6 +4,7 @@ import sys
 import os
 
 import cytomine
+from cytomine.models import AnnotationCollection
 
 __version__ = "1.0.8"
 
