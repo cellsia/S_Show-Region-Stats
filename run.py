@@ -7,7 +7,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection
+from cytomine.models import AnnotationCollection, PropertyCollection, Property
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, Job
 from cytomine.models.annotation import Annotation
 from cytomine.models.ontology import TermCollection
@@ -179,13 +179,14 @@ def update_properties(stats):
 
         for k, v in prop.items():
             current_properties = PropertyCollection(annotation).fetch()
-            current_property = next((p for p in current_properties if key), None
+            current_property = next((p for p in current_properties if p.key == k), None
             
             if current_property:
                 current_property.fetch()
                 current_property.value = v 
-
-            
+                current_property.update()
+            else:
+                Property(annotation, key=k, value=v).save()
 
     return None
 
