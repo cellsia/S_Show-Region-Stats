@@ -87,6 +87,86 @@ def get_results(params):
 
     return results
 
+def process_polygon(polygon):
+    pol = str(polygon)[len("MULTIPOINT "):].rstrip("(").lstrip(")").split(",")
+    for i in range(0, len(pol)):
+        pol[i] = pol[i].rstrip(" ").lstrip(" ")
+        pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
+    return pol
+
+def process_points(points):
+    pts = [[p["x"],p["y"]] for p in points]
+    return pts
+
+def is_inside(point, polygon):
+
+    print(point)
+    print(polygon)
+
+    v_list = []
+    for vert in polygon:
+        vector = [0,0]
+        vector[0] = float(vert[0]) - float(point[0])
+        vector[1] = float(vert[1]) - float(point[1])
+        v_list.append(vector)
+
+    v_list.append(v_list[0])
+
+    angle = 0
+    for i in range(0, len(v_list)-1):
+        v1 = v_list[i]
+        v2 = v_list[i+1]
+        unit_v1 = v1 / np.linalg.norm(v1)
+        unit_v2 = v2 / np.linalg.norm(v2)
+        dot_prod = np.dot(unit_v1, unit_v2)
+        angle += np.arccos(dot_prod)
+
+    if round(angle, 4) == 6.2832:
+        return True
+    else:
+        return False
+
+def get_stats(annotations, results):
+
+    stats = {}
+    inside_points_l = []
+
+    for annotation in annotations:
+        annotation_dict, inside_points = {}, {}
+        polygon = process_polygon(annotation.location)
+
+        for result in results:
+            if result["image"] == annotation.image:
+
+                points = result["data"]
+                image_info, global_cter = {}, 0
+                for key, value in points.items():
+                    count = len(value)
+                    global_cter+=count
+                    image_info.update({"conteo_{}_imagen".format(key):count})
+
+                image_info.update({"conteo_total_imagen":global_cter})
+                image_info.update({"area_anotacion":annotation.area})
+                annotation_dict.update({"info_imagen":image_info})
+
+                for key, value in points.items():
+                    ins_p = []
+                    pts = process_points(value)
+                    cter = 0
+                    for p in pts:
+                        if is_inside(p, polygon):
+                            ins_p.append({"x":p[0], "y":p[1]})
+                            cter+=1
+                    inside_points.update({key:ins_p})
+                    particular_info ={
+                        "conteo_{}_anotacion".format(key):cter,
+                        "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
+                    }
+                    annotation_dict.update({"info_termino_{}".format(key):particular_info})
+        inside_points_l.append([annotation.id, inside_points, result["terms"]])
+        stats.update({annotation.id:annotation_dict})
+
+    return stats, inside_points_l
 
 def run(cyto_job, parameters):
 
@@ -115,6 +195,11 @@ def run(cyto_job, parameters):
         if len(resultados) == 0:
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados para las anotaciones dadas!")
 
+        job.update(progress=30, statusComment="Calculando estadísticas")
+        stats, inside_points_l = get_stats(anotaciones, resultados)
+
+        if len(stats) == 0:
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
 
     finally:
         logging.info("Deleting folder %s", working_path)
