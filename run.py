@@ -4,7 +4,7 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection
+from cytomine.models import AnnotationCollection, Job
 
 __version__ = "1.0.8"
 
@@ -17,13 +17,10 @@ def get_stats_annotations(params):
     annotations.term = params.terms_to_analyze
 
     if type(params.terms_to_analyze) != "NoneType":
-        print("Terms is nontype")
+        annotations.term = params.terms_to_analyze
 
-    print(params.terms_to_analyze)
-    print(type(params.terms_to_analyze))
-
-    if params.images_to_analyze != None:
-        annotation.image = params.images_to_analyze
+    if type(params.images_to_analyze) != "NoneType":
+        annotations.image = params.images_to_analyze
 
     annotations.showWKT = True
     annotations.showMeta = True
@@ -31,7 +28,12 @@ def get_stats_annotations(params):
     annotations.showTerm = True
     annotations.fetch()
 
-    return annotations
+    filtered_by_id = [annotation for annotation in annotations if (params.cytomine_id_annotation == annotation.id)]
+
+    if (type(params.cytomine_id_annotation) != "NoneType") and (len(filtered_by_id)>0):
+        return filtered_by_id
+    else:
+        return annotations
 
 def run(cyto_job, parameters):
 
@@ -50,6 +52,10 @@ def run(cyto_job, parameters):
 
         job.update(progress=0, statusComment="Recogiendo anotaciones Stats")
         anotaciones = get_stats_annotations(parameters)
+        
+        if len(anotaciones) == 0:
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar anotaciones stats")
+
 
     finally:
         logging.info("Deleting folder %s", working_path)
