@@ -26,7 +26,7 @@ def run(cyto_job, parameters):
     try:
 
         job.update(progress=0, statusComment="Recogiendo anotaciones Stats")
-        anotaciones = get_stats_annotations(parametros)
+        anotaciones = get_stats_annotations(parameters)
 
     finally:
         logging.info("Deleting folder %s", working_path)
