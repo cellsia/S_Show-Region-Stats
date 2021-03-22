@@ -203,8 +203,8 @@ def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: 
     annotations = AnnotationCollection()
     for idx, points in enumerate(detections.values()):
 
+        print(len(points))
         multipoint = _generate_multipoints(points)
-        print(len(multipoint))
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
 
     annotations.save()
