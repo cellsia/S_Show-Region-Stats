@@ -6,8 +6,10 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection, Job
-from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData
+from cytomine.models import AnnotationCollection, PropertyCollection, Property
+from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
+from cytomine.models.annotation import Annotation
+from shapely.geometry import MultiPoint
 
 __version__ = "1.0.8"
 
@@ -166,6 +168,58 @@ def get_stats(annotations, results):
 
     return stats, inside_points_l
 
+def update_properties(stats):
+    for id, dic in stats.items():
+        prop = {}
+        annotation = Annotation().fetch(id=int(id))
+        for key, value in dic.items():
+            for key2, value2 in value.items():
+                prop.update({key2:value2})
+
+        for k, v in prop.items():
+            current_properties = PropertyCollection(annotation).fetch()
+            current_property = next((p for p in current_properties if p.key == k), None)
+            
+            if current_property:
+                current_property.fetch()
+                current_property.value = v 
+                current_property.update()
+            else:
+                Property(annotation, key=k, value=v).save()
+
+    return None
+
+def _generate_multipoints(detections: list) -> MultiPoint:
+
+    points = []
+    for detection in detections:
+        points.append((detection['x'], detection['y']))
+
+    return MultiPoint(points=points)
+
+def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict) -> None:
+
+    annotations = AnnotationCollection()
+    for idx, points in enumerate(detections.values()):
+
+        multipoint = _generate_multipoints(points)
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
+
+    annotations.save()
+    return None
+
+def load_multipoints(job, inside_points_l):
+
+    for item in inside_points_l:
+        annotation = Annotation().fetch(id=int(item[0]))
+        image = annotation.image
+        id = annotation.id
+        terms = item[2].rstrip(']').lstrip('[').split(',')
+
+        _load_multi_class_points(job, image, terms, item[1])
+
+    return None
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -198,6 +252,32 @@ def run(cyto_job, parameters):
 
         if len(stats) == 0:
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
+
+        job.update(progress=60, statusComment="Generando archivo .JSON con los resultados")
+        output_path = os.path.join(working_path, "stats.json")
+        f = open(output_path, "w+")
+        json.dump(stats, f)
+        f.close()
+
+        job_data = JobData(job.id, "stats", "stats.json").save()
+        job_data.upload(output_path)
+
+        job.update(progress=65, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
+        for item in inside_points_l:
+            output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
+            f = open(output_path2, "w+")
+            json.dump(item[1], f)
+            f.close()
+
+            job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
+            job_data.upload(output_path2)
+
+        job.update(progress=70, statusComment="Update annotation properties")
+        update_properties(stats)
+
+        job.update(progress=80, statusComment="Generate Multipoint annotations")
+        load_multipoints(job, inside_points_l)
+
 
     finally:
         logging.info("Deleting folder %s", working_path)
