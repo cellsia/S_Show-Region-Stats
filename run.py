@@ -280,13 +280,12 @@ def run(cyto_job, parameters):
             with open(output_path2) as json_file:
                 detections = json.load(json_file)
 
-
                 annotation = Annotation().fetch(id=int(item[0]))
                 image = annotation.image
                 id = annotation.id
                 terms = item[2].rstrip(']').lstrip('[').split(',')
 
-                _load_multi_class_points(job, image, terms, )
+                _load_multi_class_points(job, image, terms, detections)
 
         job.update(progress=70, statusComment="Update annotation properties")
         update_properties(stats)
