@@ -103,8 +103,6 @@ def process_points(points):
 
 def is_inside(point, polygon):
 
-    print(polygon)
-
     v_list = []
     for vert in polygon:
         vector = [0,0]
