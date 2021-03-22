@@ -93,6 +93,7 @@ def get_json_results(params):
     return results
 
 def process_polygon(polygon):
+    pol = polygon
     return pol
 
 def process_points(points):
