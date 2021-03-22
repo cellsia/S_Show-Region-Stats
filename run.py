@@ -179,7 +179,7 @@ def update_properties(stats):
 
         for k, v in prop.items():
             current_properties = PropertyCollection(annotation).fetch()
-            current_property = next((p for p in current_properties if p.key == k), None
+            current_property = next((p for p in current_properties if p.key == k), None)
             
             if current_property:
                 current_property.fetch()
