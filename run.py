@@ -91,7 +91,7 @@ def get_results(params):
     return results
 
 def process_polygon(polygon):
-    pol = str(polygon)[:].rstrip("(").lstrip(")").split(",")
+    pol = str(polygon)[6:].rstrip("(").lstrip(")").split(",")
     for i in range(0, len(pol)):
         pol[i] = pol[i].rstrip(" ").lstrip(" ")
         pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
