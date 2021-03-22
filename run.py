@@ -7,7 +7,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection
+from cytomine.models import AnnotationCollection, PropertyCollection, Property
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, Job
 from cytomine.models.annotation import Annotation
 from cytomine.models.ontology import TermCollection
@@ -161,7 +161,7 @@ def get_stats(annotations, results):
                     inside_points.update({key:ins_p})
                     particular_info ={
                         "conteo_{}_anotacion".format(key):cter,
-                        "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
+                        "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points, result["terms"]])
@@ -179,7 +179,7 @@ def update_properties(stats):
 
         for k, v in prop.items():
             current_properties = PropertyCollection(annotation).fetch()
-            current_property = next((p for p in current_properties if p.key == k), None
+            current_property = next((p for p in current_properties if p.key == k), None)
             
             if current_property:
                 current_property.fetch()
@@ -198,26 +198,28 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict) -> None:
+def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict, cter: int) -> None:
 
     annotations = AnnotationCollection()
     for idx, points in enumerate(detections.values()):
 
         multipoint = _generate_multipoints(points)
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]+cter))
 
     annotations.save()
     return None
 
 def load_multipoints(job, inside_points_l):
 
+    cter = 0
     for item in inside_points_l:
+        cter+=1
         annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
         id = annotation.id
         terms = item[2].rstrip(']').lstrip('[').split(',')
 
-        _load_multi_class_points(job, image, terms, item[1])
+        _load_multi_class_points(job, image, terms, item[1], cter)
 
     return None
 
