@@ -7,6 +7,9 @@ import cytomine
 __version__ = "1.0.8"
 
 
+def get_stats_annotations(params):
+    return None
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -22,8 +25,9 @@ def run(cyto_job, parameters):
 
     try:
 
-        # code goes here
-    
+        job.update(progress=0, statusComment="Recogiendo anotaciones Stats")
+        anotaciones = get_stats_annotations(parametros)
+
     finally:
         logging.info("Deleting folder %s", working_path)
         shutil.rmtree(working_path, ignore_errors=True)
