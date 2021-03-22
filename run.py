@@ -9,7 +9,14 @@ __version__ = "1.0.8"
 
 
 def get_stats_annotations(params):
-    return None
+
+    annotations = AnnotationCollection()
+
+    annotations.project = params.cytomine_id_project
+
+    annotations.fetch()
+
+    return annotations
 
 def run(cyto_job, parameters):
 
