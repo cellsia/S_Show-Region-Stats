@@ -93,7 +93,10 @@ def get_json_results(params):
     return results
 
 def process_polygon(polygon):
-    pol = polygon
+    pol = str(polygon)[len("MULTIPOINT "):].rstrip("(").lstrip(")").split(",")
+    for i in range(0, len(pol)):
+        pol[i] = pol[i].rstrip(" ").lstrip(" ")
+        pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
     return pol
 
 def process_points(points):
