@@ -16,6 +16,8 @@ def get_stats_annotations(params):
     annotations.project = params.cytomine_id_project
     annotations.term = params.terms_to_analyze
 
+    print(type(params.terms_to_analyze))
+
     if params.images_to_analyze != None:
         annotation.image = params.images_to_analyze
 
