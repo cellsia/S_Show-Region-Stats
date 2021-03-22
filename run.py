@@ -7,13 +7,13 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property
+from cytomine.models import AnnotationCollection, PropertyCollection
 from cytomine.models.software import JobCollection, JobDataCollection, JobData, JobParameterCollection, Job
 from cytomine.models.annotation import Annotation
 from cytomine.models.ontology import TermCollection
 from shapely.geometry import MultiPoint
 
-__version__ = "1.0.6"
+__version__ = "1.0.7"
 
 def get_stats_annotations(params):
 
@@ -161,7 +161,7 @@ def get_stats(annotations, results):
                     inside_points.update({key:ins_p})
                     particular_info ={
                         "conteo_{}_anotacion".format(key):cter,
-                        "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
+                        "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points, result["terms"]])
@@ -179,14 +179,13 @@ def update_properties(stats):
 
         for k, v in prop.items():
             current_properties = PropertyCollection(annotation).fetch()
-            current_property = next((p for p in current_properties if p.key == k), None)
+            current_property = next((p for p in current_properties if key), None
             
             if current_property:
                 current_property.fetch()
                 current_property.value = v 
-                current_property.update()
-            else:
-                Property(annotation, key=k, value=v).save()
+
+            
 
     return None
 
@@ -198,13 +197,12 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict, cter: int) -> None:
+def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: dict) -> None:
 
     annotations = AnnotationCollection()
     for idx, points in enumerate(detections.values()):
-        
+
         multipoint = _generate_multipoints(points)
-        print(len(multipoint))
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
 
     annotations.save()
@@ -213,7 +211,6 @@ def _load_multi_class_points(job: Job, image_id: str,  terms: list, detections: 
 def load_multipoints(job, inside_points_l):
 
     for item in inside_points_l:
-        
         annotation = Annotation().fetch(id=int(item[0]))
         image = annotation.image
         id = annotation.id
