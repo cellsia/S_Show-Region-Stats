@@ -5,6 +5,7 @@ import os
 
 import cytomine
 from cytomine.models import AnnotationCollection, Job
+from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData
 
 __version__ = "1.0.8"
 
@@ -35,6 +36,57 @@ def get_stats_annotations(params):
     else:
         return annotations
 
+def get_results(params):
+
+    results = []
+    equiv, equiv2 = {}, {}
+
+    jobs = JobCollection()
+    jobs.project = params.cytomine_id_project
+    jobs.fetch()
+    jobs_ids = [job.id for job in jobs]
+
+    for job_id in jobs_ids:
+
+        jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
+        jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
+
+        for job in jobdatacol:
+
+            jobdata = JobData().fetch(job.id)
+            filename = jobdata.filename
+
+            for param in jobparamscol:
+                if str(param).split(" : ")[1] in ["cytomine_image"]:
+                    equiv.update({filename:int(param.value)})
+                if str(param).split(" : ")[1] in ["cytomine_id_term"]:
+                    equiv2.update({filename:param.value})
+
+            if "detections" in filename:
+                try:
+                    jobdata.download(os.path.join("tmp/", filename))
+                except AttributeError:
+                    continue
+
+    temp_files = os.listdir("tmp")
+    for i in range(0, len(temp_files)):
+        if temp_files[i][-4:] == "json":
+            filename = temp_files[i]
+            try:
+                image = equiv[filename]
+                terms = equiv2[filename]
+                with open("tmp/"+filename, 'r') as json_file:
+                    data = json.load(json_file)
+                    json_file.close()
+                results.append({"image":image, "terms":terms ,"data":data})
+            except KeyError:
+                continue
+
+    os.system("cd tmp&&rm detections*")
+
+    return results
+
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -54,7 +106,13 @@ def run(cyto_job, parameters):
         anotaciones = get_stats_annotations(parameters)
         
         if len(anotaciones) == 0:
-            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar anotaciones stats")
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar anotaciones stats!")
+
+        job.update(progress=15, statusComment="Recogiendo resultados")
+        resultados = get_results(parameters)
+
+        if len(resultados) == 0:
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados para las anotaciones dadas!")
 
 
     finally:
