@@ -1,15 +1,33 @@
 import logging
 import sys
+import os
 
 import cytomine
 
-__version__ = "1.0.9"
+__version__ = "1.0.8"
 
 
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
     logging.info("Entering run(cyto_job=%s, parameters=%s)", cyto_job, parameters)
+
+    job = cyto_job.job
+    project = cyto_job.project
+
+    working_path = os.path.join("tmp", str(job.id))
+    if not os.path.exists(working_path):
+        logging.info("Creating working directory: %s", working_path)
+        os.makedirs(working_path)
+
+    try:
+
+        # code goes here
+    
+    finally:
+        logging.info("Deleting folder %s", working_path)
+        shutil.rmtree(working_path, ignore_errors=True)
+        logging.debug("Leaving run()")
 
 if __name__ == '__main__':
 
