@@ -6,7 +6,7 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation
+from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint
 
@@ -203,8 +203,9 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
 
         multipoint = _generate_multipoints(points)
 
-        annot = Annotation(location=multipoint.wkt, id_image=image_id)
-        AnnotationTerm(id_annotation=annot.id, id_term=terms[idx]).save()
+        annot = Annotation(location=multipoint.wkt, id_image=image_id).save()
+        term = Term().fetch(id=term[idx])
+        print(term.name)
         Property(annot, key="ID:", value=id_).save()
         
     return None
@@ -265,7 +266,6 @@ def run(cyto_job, parameters):
         update_properties(stats)
 
         job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
-        annotations = AnnotationCollection()
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
@@ -280,14 +280,10 @@ def run(cyto_job, parameters):
                     boolean = False
 
             if boolean:
-            
-                for idx, points in enumerate(detections.values()):
-
-                    multipoint = _generate_multipoints(points)
-                    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=[terms[idx]]))
+                _load_multi_class_points(job, image_id, terms, item[1], id_)
             else:
                 continue
-        annotations.save()
+        
 
     finally:
         logging.info("Deleting folder %s", working_path)
