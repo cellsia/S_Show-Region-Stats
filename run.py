@@ -189,6 +189,26 @@ def update_properties(stats):
 
     return None
 
+def _generate_multipoints(detections: list) -> MultiPoint:
+
+    points = []
+    for detection in detections:
+        points.append((detection['x'], detection['y']))
+
+    return MultiPoint(points=points)
+
+def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: dict) -> None:
+
+    annotations = AnnotationCollection()
+    
+    for idx, points in enumerate(detections.values()):
+
+        multipoint = _generate_multipoints(points)
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[terms[idx]]))
+    
+    annotations.save()
+    return None
+
 def run(cyto_job, parameters):
 
     logging.info("----- test software v%s -----", __version__)
@@ -244,7 +264,22 @@ def run(cyto_job, parameters):
         job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
         update_properties(stats)
 
+        job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+        for item in inside_points_l:
 
+            annotation = Annotation().fetch(id=int(item[0]))
+            image = annotation.image
+            terms = item[2]
+            
+            boolean = True
+            for key, value in item[1].items():
+                if len(value) == 0:
+                    boolean = False
+
+            if boolean:
+                _load_multi_class_points(job, image, terms, item[1])
+            else:
+                continue
 
     finally:
         logging.info("Deleting folder %s", working_path)
