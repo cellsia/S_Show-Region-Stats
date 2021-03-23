@@ -6,9 +6,8 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property
+from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
-from cytomine.models.annotation import Annotation
 from shapely.geometry import MultiPoint
 
 __version__ = "1.0.8"
