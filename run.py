@@ -205,15 +205,10 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
 
         
         annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project).save()
+        term = Term().fetch(id=terms[idx])
         Property(annotation, key="ID:", value=id_).save()
-        AnnotationTerm(annotation.id, terms[idx]).save()
-
-        #annot = Annotation(location=multipoint.wkt, id_image=image_id, id_terms=terms[idx]).save()
-        #Property(annot, key="ID:", value=id_).save()
-        #term = Term().fetch(id=terms[idx])
-       # print(term.name)
-        #AnnotationTerm(annot.id, terms[idx]).save()
-        #Property(annot, key="ID:", value=id_).save()
+        Property(annotation, key="Term:", value=term.name)
+        #AnnotationTerm(annotation.id, terms[idx]).save()
         
     return None
 
