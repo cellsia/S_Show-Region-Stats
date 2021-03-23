@@ -207,7 +207,7 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
         term = Term().fetch(id=terms[idx])
         print(term.name)
         #AnnotationTerm(annot.id, terms[idx]).save()
-        Property(annot, key="ID:", value=id_).save()
+        #Property(annot, key="ID:", value=id_).save()
         
     return None
 
