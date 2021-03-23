@@ -270,7 +270,9 @@ def run(cyto_job, parameters):
             annotation = Annotation().fetch(id=int(item[0]))
             image = annotation.image
             terms = item[2]
-            
+            print(image)
+            print(terms)
+            print(item[1])
             boolean = True
             for key, value in item[1].items():
                 if len(value) == 0:
