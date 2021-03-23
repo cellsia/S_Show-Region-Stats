@@ -205,8 +205,7 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
         multipoint = _generate_multipoints(points)
         #print(multipoint)
 
-        annot = Annotation(location=multipoint.wkt, id_image=image_id).save()
-        AnnotationTerm(annot.id, [terms[idx]]).save()
+        annot = Annotation(location=multipoint.wkt, id_image=image_id, id_term=[terms[idx]]).save()
         Property(annot, key="anotacion:", value=cter).save()
         
     
