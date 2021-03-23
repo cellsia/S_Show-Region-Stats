@@ -275,6 +275,7 @@ def run(cyto_job, parameters):
             annotation = Annotation().fetch(id=int(item[0]))
             image = annotation.image
             terms = item[2]
+            terms = terms.rstrip("]").lstrip("[").split(",")
             print(terms)
             print(type(terms))
             #print(image)
