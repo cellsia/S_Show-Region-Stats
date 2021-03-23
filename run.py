@@ -204,7 +204,9 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
         multipoint = _generate_multipoints(points)
 
         annotations = AnnotationCollection()
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project))
+        annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project)
+        Property(annot, key="ID:", value=id_)
+        annotations.append(annotation))
         
         annotations.save()
 
