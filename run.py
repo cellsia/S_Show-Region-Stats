@@ -203,7 +203,7 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
 
         multipoint = _generate_multipoints(points)
 
-        annot = Annotation(location=multipoint.wkt, id_image=image_id, id_term=[terms[idx]]).save()
+        annot = Annotation(location=multipoint.wkt, id_image=image_id, id_term=terms[idx]).save()
         Property(annot, key="ID:", value=id_).save()
         
     return None
@@ -266,7 +266,7 @@ def run(cyto_job, parameters):
         job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
-            id_ = int(annotation.id)
+            id_ = int(item[0])
             image = annotation.image
             terms = item[2]
             terms = terms.rstrip("]").lstrip("[").split(",")
