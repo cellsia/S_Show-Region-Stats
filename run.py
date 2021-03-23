@@ -197,14 +197,14 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: dict, id_: int) -> None:
+def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: dict, id_: int, params) -> None:
     
     for idx, points in enumerate(detections.values()):
 
         multipoint = _generate_multipoints(points)
 
         annotations = AnnotationCollection()
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project))
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project))
         
         annotations.save()
 
@@ -287,7 +287,7 @@ def run(cyto_job, parameters):
                     boolean = False
 
             if boolean:
-                _load_multi_class_points(job, image_id, terms, item[1], id_)
+                _load_multi_class_points(job, image_id, terms, item[1], id_, parameters)
             else:
                 continue
         
