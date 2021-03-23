@@ -274,7 +274,8 @@ def run(cyto_job, parameters):
             cter+=1
             annotation = Annotation().fetch(id=int(item[0]))
             image = annotation.image
-            terms = list(item[2])
+            terms = item[2]
+            print(terms)
             #print(image)
             #print(terms)
             #print(item[1])
