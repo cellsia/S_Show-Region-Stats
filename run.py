@@ -276,6 +276,7 @@ def run(cyto_job, parameters):
             image = annotation.image
             terms = item[2]
             print(terms)
+            print(type(terms))
             #print(image)
             #print(terms)
             #print(item[1])
