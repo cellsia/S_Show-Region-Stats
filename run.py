@@ -203,8 +203,8 @@ def _load_multi_class_points(job: Job, image_id: str, terms: list, detections: d
 
         multipoint = _generate_multipoints(points)
 
-        annot = Annotation(location=multipoint.wkt, id_image=image_id).save()
-        AnnotationTerm(id_annotation=annot.id, id_term="[{}]".format(terms[idx])).save()
+        annot = Annotation(location=multipoint.wkt, id_image=image_id)
+        AnnotationTerm(id_annotation=annot.id, id_term=terms[idx]).save()
         Property(annot, key="ID:", value=id_).save()
         
     return None
@@ -265,22 +265,29 @@ def run(cyto_job, parameters):
         update_properties(stats)
 
         job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+        annotations = AnnotationCollection()
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
-            image = annotation.image
+            image_id = annotation.image
             terms = item[2]
             terms = terms.rstrip("]").lstrip("[").split(",")
+            detections = item[1]
 
             boolean = True
-            for key, value in item[1].items():
+            for key, value in detections.items():
                 if len(value) == 0:
                     boolean = False
 
             if boolean:
-                _load_multi_class_points(job, image, terms, item[1], id_)
+            
+                for idx, points in enumerate(detections.values()):
+
+                    multipoint = _generate_multipoints(points)
+                    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.id_project, id_terms=[terms[idx]]))
             else:
                 continue
+        annotations.save()
 
     finally:
         logging.info("Deleting folder %s", working_path)
