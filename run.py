@@ -284,7 +284,7 @@ def run(cyto_job, parameters):
                 for idx, points in enumerate(detections.values()):
 
                     multipoint = _generate_multipoints(points)
-                    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.id_project, id_terms=[terms[idx]]))
+                    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=[terms[idx]]))
             else:
                 continue
         annotations.save()
