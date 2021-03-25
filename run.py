@@ -6,7 +6,7 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance
+from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint
 
@@ -212,6 +212,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
     terms = [key for key,value in detections.items()]
 
     termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
+    project = Project().fetch(params.cytomine_id_project)
     term_names = []
 
     for idx, points in enumerate(detections.values()):
@@ -219,7 +220,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         term_name = "INSIDE_POINTS_{}_ANOT_{}".format(terms[idx], id_)
         term_names.append(term_name)
         
-        termscol.append(Term(name=term_name, id_ontology=params.cytomine_id_ontologys))
+        termscol.append(Term(name=term_name, id_ontology=project.ontology))
 
     termscol.save()
 
