@@ -129,9 +129,6 @@ def get_stats(annotations, results):
         for result in results:
             if result["image"] == annotation.image:
 
-                terms = [key for key, value in result["data"]]
-                for key, value in result["data"]
-
                 points = result["data"]
                 image_info, global_cter = {}, 0
                 for key, value in points.items():
