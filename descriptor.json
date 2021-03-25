@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [CYTOMINE_ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [[CYTOMINE_ID_ONTOLOGY] [CYTOMINE_ID_ANNOTATION]  [TERMS_TO_ANALYZE] [IMAGES_TO_ANALYZE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -48,6 +48,15 @@
       "value-key": "[@ID]",
       "command-line-flag": "--@id",
       "name": "Cytomine software ID",
+      "set-by-server": true,
+      "optional": false,
+      "type": "Number"
+    },
+    {
+      "id": "cytomine_id_ontology",
+      "value-key": "[@ID]",
+      "command-line-flag": "--@id",
+      "name": "Cytomine ontology ID",
       "set-by-server": true,
       "optional": false,
       "type": "Number"
