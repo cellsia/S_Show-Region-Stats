@@ -53,29 +53,6 @@
       "type": "Number"
     },
     {
-      "id": "cytomine_id_ontology",
-      "value-key": "[@ID]",
-      "command-line-flag": "--@id",
-      "name": "Cytomine ontology ID",
-      "set-by-server": true,
-      "optional": false,
-      "type": "Number"
-    },
-    {
-      "name": "terms_to_analyze",
-      "description": "Término de las anotaciones manuales de las que se quieren calcular estadísticas (por defecto Stats)",
-      "set-by-server": false,
-      "value-key": "@ID",
-      "optional": false,
-      "default-value":"Stats",
-      "id": "terms_to_analyze",
-      "type": "ListDomain",
-      "uri": "/api/project/$currentProject$/term.json",
-      "uri-print-attribute": "name",
-      "uri-sort-attribute": "name",
-      "command-line-flag": "--@id"
-    },
-    {
       "id": "images_to_analyze",
       "description": "Imagen que contiene la anotación (opcional)",
       "value-key": "[@ID]",
