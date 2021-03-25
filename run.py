@@ -219,7 +219,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         term_name = "INSIDE_POINTS_{}_ANOT_{}".format(terms[idx], id_)
         term_names.append(term_name)
         
-        termscol.append(Term(name=term_name))
+        termscol.append(Term(name=term_name, id_ontology=params.cytomine_id_ontologys))
 
     termscol.save()
 
