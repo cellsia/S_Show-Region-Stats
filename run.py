@@ -195,7 +195,7 @@ def update_properties(stats):
                 current_property.value = v 
                 current_property.update()
             else:
-                Property(annotation, key=k, value=v).save()
+                Property(image, key=k, value=v).save()
 
     return None
 
