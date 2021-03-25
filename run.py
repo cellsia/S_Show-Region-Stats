@@ -155,7 +155,7 @@ def get_stats(annotations, results):
                         "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
-        inside_points_l.append([annotation.id, inside_points)
+        inside_points_l.append([annotation.id, inside_points])
         stats.update({annotation.id:annotation_dict})
 
     return stats, inside_points_l
