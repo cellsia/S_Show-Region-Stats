@@ -277,7 +277,7 @@ def run(cyto_job, parameters):
         job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
         update_properties(stats)
 
-       """ job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+        """ job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
