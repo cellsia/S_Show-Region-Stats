@@ -6,7 +6,7 @@ import sys
 import os
 
 import cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term
+from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint
 
@@ -20,9 +20,6 @@ def get_stats_annotations(params):
     annotations.project = params.cytomine_id_project
     annotations.term = params.terms_to_analyze
 
-    if type(params.terms_to_analyze) != "NoneType":
-        annotations.term = params.terms_to_analyze
-
     if type(params.images_to_analyze) != "NoneType":
         annotations.image = params.images_to_analyze
 
@@ -32,12 +29,7 @@ def get_stats_annotations(params):
     annotations.showTerm = True
     annotations.fetch()
 
-    filtered_by_id = [annotation for annotation in annotations if (params.cytomine_id_annotation == annotation.id)]
-
-    if (type(params.cytomine_id_annotation) != "NoneType") and (len(filtered_by_id)>0):
-        return filtered_by_id
-    else:
-        return annotations
+    return annotations
 
 def get_results(params):
 
@@ -146,6 +138,7 @@ def get_stats(annotations, results):
 
                 image_info.update({"conteo_total_imagen":global_cter})
                 image_info.update({"area_anotacion":annotation.area})
+                image_info.update({"imagen_anotacion":annotation.image})
                 annotation_dict.update({"info_imagen":image_info})
 
                 for key, value in points.items():
@@ -169,11 +162,17 @@ def get_stats(annotations, results):
 
 def update_properties(stats):
     for id, dic in stats.items():
-        prop = {}
+        prop, prop2 = {}, {}
         annotation = Annotation().fetch(id=int(id))
         for key, value in dic.items():
-            for key2, value2 in value.items():
-                prop.update({key2:value2})
+            if key == "info_imagen":
+                img_id = value["image_id"]
+                image = ImageInstance().fetch(id=int(img_id))
+                for key2, value2 in value.items():
+                    prop2.update({key2:value2})
+            else:
+                for key2, value2 in value.items():
+                    prop.update({key2:value2})
 
         for k, v in prop.items():
             current_properties = PropertyCollection(annotation).fetch()
@@ -186,6 +185,17 @@ def update_properties(stats):
             else:
                 Property(annotation, key=k, value=v).save()
         Property(annotation, key="ID", value=int(id)).save()
+
+        for k, v in prop2.items():
+            current_properties = PropertyCollection(image).fetch()
+            current_property = next((p for p in current_properties if p.key == k), None)
+            
+            if current_property:
+                current_property.fetch()
+                current_property.value = v 
+                current_property.update()
+            else:
+                Property(annotation, key=k, value=v).save()
 
     return None
 
