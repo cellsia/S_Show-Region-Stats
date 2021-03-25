@@ -261,7 +261,7 @@ def run(cyto_job, parameters):
         json.dump(stats, f)
         f.close()
 
-        job_data = JobData(job.id, "stats", "stats.json").save()
+        """job_data = JobData(job.id, "stats", "stats.json").save()
         job_data.upload(output_path)
 
         job.update(progress=65, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
@@ -272,12 +272,12 @@ def run(cyto_job, parameters):
             f.close()
 
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
-            job_data.upload(output_path2)
+            job_data.upload(output_path2)"""
             
         job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
         update_properties(stats)
 
-        job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+       """ job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
@@ -294,7 +294,7 @@ def run(cyto_job, parameters):
             if boolean:
                 _load_multi_class_points(job, image_id, terms, item[1], id_, parameters)
             else:
-                continue
+                continue"""
         
 
     finally:
