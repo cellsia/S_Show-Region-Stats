@@ -166,7 +166,7 @@ def update_properties(stats):
         annotation = Annotation().fetch(id=int(id))
         for key, value in dic.items():
             if key == "info_imagen":
-                img_id = value["image_id"]
+                img_id = value["imagen_anotacion"]
                 image = ImageInstance().fetch(id=int(img_id))
                 for key2, value2 in value.items():
                     prop2.update({key2:value2})
