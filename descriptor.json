@@ -53,21 +53,12 @@
       "type": "Number"
     },
     {
-      "id": "cytomine_id_annotation",
-      "value-key": "[@ID]",
-      "command-line-flag": "--@id",
-      "name": "Cytomine annotation ID",
-      "description": "ID de la annotacion (opcional si se selecciona un término)",
-      "set-by-server": false,
-      "optional": true,
-      "type": "Number"
-    },
-    {
       "name": "terms_to_analyze",
-      "description": "Término a analizar (opcional si se introduce ID de anotación)",
+      "description": "Término de las anotaciones manuales de las que se quieren calcular estadísticas (por defecto Stats)",
       "set-by-server": false,
       "value-key": "@ID",
-      "optional": true,
+      "optional": false,
+      "default-value":"Stats",
       "id": "terms_to_analyze",
       "type": "ListDomain",
       "uri": "/api/project/$currentProject$/term.json",
