@@ -218,7 +218,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     for idx, points in enumerate(detections.values()):
 
-        term_name = "INSIDE_POINTS_{}_ANOT_{}".format(terms[idx], id_)
+        term_name = "INSIDE_POINTS_{}_ANOTACION_{}".format(terms[idx], id_)
 
         multipoint = _generate_multipoints(points)
         
