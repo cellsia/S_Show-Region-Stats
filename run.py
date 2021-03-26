@@ -211,8 +211,9 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     terms = [key for key,value in detections.items()]
 
-    termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
+    
     project = Project().fetch(params.cytomine_id_project)
+    termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
     
 
     for idx, points in enumerate(detections.values()):
