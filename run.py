@@ -222,7 +222,10 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         
         termscol.append(Term(term_name, project.ontology, "F44E3B"))
 
-    termscol.save()
+    try:
+        termscol.save()
+    except:
+        continue
 
     
     for idx, points in enumerate(detections.values()):
