@@ -222,26 +222,33 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         term_names.append(term_name)
 
         l = [t.name for t in termscol]
-
-        if not term_names in l:
+        print(l)
+        
+        if not(term_name in l):
             termscol.append(Term(term_name, project.ontology, "F44E3B"))
+            termscol.save()
 
-    termscol.save()
+    
 
     
 
+   """ annotations = AnnotationCollection()
     
-    """for idx, points in enumerate(detections.values()):
+    for idx, points in enumerate(detections.values()):
 
         multipoint = _generate_multipoints(points)
+
+        t1 = [t.id for term in termscol if t.name == term_names[idx]]
         
-        annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project).save()
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_terms=[t1[0]]))"""
+        
+        """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project).save()
         #term = Term().fetch(id=terms[idx])
         Property(annotation, key="ID:", value=id_).save()
         Property(annotation, key="Term:", value=term_names[idx]).save()
         AnnotationTerm(id_anotation=id_, id_term=term_names[idx]).save()"""
 
-        
+    #annotations.save()
         
         
     return None
