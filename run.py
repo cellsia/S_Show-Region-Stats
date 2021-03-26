@@ -213,11 +213,12 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
     project = Project().fetch(params.cytomine_id_project)
-    term_names = []
+    
 
     for idx, points in enumerate(detections.values()):
 
         term_name = "INSIDE_POINTS_{}_ANOT_{}".format(terms[idx], id_)
+        term_names = []
         term_names.append(term_name)
         
         termscol.append(Term(term_name, project.ontology, "F44E3B"))
@@ -235,8 +236,8 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project).save()
         #term = Term().fetch(id=terms[idx])
         Property(annotation, key="ID:", value=id_).save()
-        Property(annotation, key="Term:", value=terms_names[idx]).save()
-        AnnotationTerm(id_anotation=id_, id_term=terms_name[idx]).save()
+        Property(annotation, key="Term:", value=term_names[idx]).save()
+        AnnotationTerm(id_anotation=id_, id_term=term_names[idx]).save()
 
         
         
