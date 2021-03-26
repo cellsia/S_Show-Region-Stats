@@ -211,7 +211,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     terms = [key for key,value in detections.items()]
 
-    #termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
+    termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
     project = Project().fetch(params.cytomine_id_project)
     
 
@@ -220,8 +220,13 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         term_name = "INSIDE_POINTS_{}_ANOT_{}".format(terms[idx], id_)
         term_names = []
         term_names.append(term_name)
-        if not Term(term_name, project.ontology, "F44E3B").fetch():
-            Term(term_name, project.ontology, "F44E3B").save()
+
+        l = [t.name for t in termscol]
+
+        if not term_names in l:
+        termscol.append(Term(term_name, project.ontology, "F44E3B"))
+
+    termscol.save()
 
     
 
