@@ -224,7 +224,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         l = [t.name for t in termscol]
 
         if not term_names in l:
-        termscol.append(Term(term_name, project.ontology, "F44E3B"))
+            termscol.append(Term(term_name, project.ontology, "F44E3B"))
 
     termscol.save()
 
