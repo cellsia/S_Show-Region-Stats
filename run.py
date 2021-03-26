@@ -225,7 +225,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
     try:
         termscol.save()
     except:
-        continue
+        pass
 
     
     for idx, points in enumerate(detections.values()):
