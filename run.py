@@ -232,7 +232,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     
 
-   """ annotations = AnnotationCollection()
+    """ annotations = AnnotationCollection()
     
     for idx, points in enumerate(detections.values()):
 
