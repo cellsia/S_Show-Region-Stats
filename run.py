@@ -224,7 +224,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
         l = [t.name for t in termscol]
         termscol = TermCollection().fetch_with_filter("project", params.cytomine_id_project)
-        t1 = [t.id for term in termscol if t.name == term_name]
+        t1 = [t.id for t in termscol if t.name == term_name]
         
         if not(term_name in l):
             term1 = Term(term_name, project.ontology, "F44E3B").save()
