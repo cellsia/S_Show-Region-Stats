@@ -55,7 +55,7 @@ def get_results(params):
 
             for jobdata in jobdatacol:        
 
-                jobdata = JobData().fetch(jobdatacol.id)
+                jobdata = JobData().fetch(jobdata.id)
                 print(jobdata)
 
         
