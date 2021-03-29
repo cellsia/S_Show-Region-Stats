@@ -5,9 +5,9 @@ from argparse import ArgumentParser
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection
 
+def get_stats_annotations(params):
 
-def run(params):
-    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
         annotations = AnnotationCollection()
 
@@ -22,6 +22,18 @@ def run(params):
         annotations.showGIS = True
         annotations.showTerm = True
         annotations.fetch()
+
+        for annotation in annotations:
+            print("ID: {} | Image: {} | Project: {} | Term: {} | User: {} | Area: {} | Perimeter: {} | WKT: {}".format(
+                annotation.id,
+                annotation.image,
+                annotation.project,
+                annotation.term,
+                annotation.user,
+                annotation.area,
+                annotation.perimeter,
+                annotation.location
+            ))
 
         return annotations
 
@@ -47,4 +59,4 @@ if __name__ == '__main__':
     params, other = parser.parse_known_args(sys.argv[1:])
 
 
-    run(params)
+    get_stats_annotations(params)
