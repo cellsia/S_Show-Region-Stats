@@ -120,7 +120,6 @@ if __name__ == '__main__':
     #get_stats_annotations(params)
 
     results = get_results(params)
-    for r in results:
-        print(r["image"])
+    print(len(results))
     
     
