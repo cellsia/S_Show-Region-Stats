@@ -47,7 +47,7 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
-    jobs_ids = [j.id for j in jobs]
+    jobs_ids = [j.id for j in jobs if (j.name[:17] != "Show Region Stats")]
 
 
     for job_id in jobs_ids:
