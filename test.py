@@ -89,7 +89,7 @@ def get_results(params):
 
 def create_term(params):
 
-    project = Project().fecth(params.cytomine_id_project)
+    project = Project().fetch(params.cytomine_id_project)
 
     termscol = TermCollection().fetch_with_filter("project", project.id)
     [print(term) for term in termscol]
