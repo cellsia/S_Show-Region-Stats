@@ -297,7 +297,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             job_data.upload(output_path2)
 
             delta += get_new_delta(len(inside_points_l), 65, 75)
-            job.update(progress=delta, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
+            job.update(progress=int(delta), statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
 
         # actualizamos propiedades de anotaciones manuales e imagen
         job.update(progress=75, statusComment="Actualizando propiedades de las anotaciones Stats")
