@@ -10,7 +10,7 @@ from cytomine.models import AnnotationCollection, PropertyCollection, Property, 
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint
 
-__version__ = "1.0.8"
+__version__ = "1.1.3"
 
 
 def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
@@ -34,10 +34,14 @@ def get_stats_annotations(params): # funcion para sacar las anotaciones manuales
     # devolvemos anotaciones
     return annotations
 
+
+get_new_delta = lambda n, a, b: (b - a) / n # calcular aumento delta para barra de progreso
+
 def get_results(params): # funcion para cargar los resultados a partir de los arhivos .json cargados. 
 
     results = [] # array con resultados 
     equiv = {} # diccionario de equivalencias (filename - cytomine_image_term_id)
+    delta = 5 # actualizar barra de progreso
 
     # sacamos lista con todos los job id's
     jobs = JobCollection()
@@ -58,7 +62,7 @@ def get_results(params): # funcion para cargar los resultados a partir de los ar
             filename = jobdata.filename
 
             allowed_params = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
-            [equiv.update({filename:int(param.value)}) for param in jobparamscol if (str(param.split(" : ")[1] in allowed_params)) ]
+            [equiv.update({filename:int(param.value)}) for param in jobparamscol if (str(param).split(" : ")[1] in allowed_params) ]
 
             # si el .json tiene "detections en el nombre de archivo lo descargamos y lo metemos en la carpeta tmp/"
             if "detections" in filename:
@@ -66,6 +70,10 @@ def get_results(params): # funcion para cargar los resultados a partir de los ar
                     jobdata.download(os.path.join("tmp/", filename))
                 except AttributeError:
                     continue
+
+
+            delta += get_new_delta(len(jobs_ids), 5, 20)
+            job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
 
     # cargamos los resultados a partir de los archivos que hemos descargado
     temp_files = os.listdir("tmp")
@@ -83,9 +91,10 @@ def get_results(params): # funcion para cargar los resultados a partir de los ar
 
     os.system("cd tmp&&rm detections*") # eliminamos archivos temporales
 
+    # devolvemos resultados
     return results
 
-def process_polygon(polygon):
+def process_polygon(polygon): # funcion que procesa .location de anotacion manual para convertirlo a poligono shapely
     pol = str(polygon)[7:].rstrip("(").lstrip(")").split(",")
     for i in range(0, len(pol)):
         pol[i] = pol[i].rstrip(" ").lstrip(" ")
@@ -121,9 +130,21 @@ def is_inside(point, polygon):
     else:
         return False
 
-def get_stats(annotations, results):
+def get_stats(annotations, results): # funcion que calcula las estadísticas y va actualizando las propiedades de cada anotación 
 
-    stats = {}
+    stats = {} # diccionario con estadisticas
+    inside_points_l = [] # array que va a contener los puntos de dentro de cada anotacion (+ items)
+
+    for annotation in annotations:
+        annotation_dict, inside_points = {}, {}
+        polygon = annotation.location
+        print(type(polygon))
+    
+
+
+
+
+    """stats = {}
     inside_points_l = []
 
     for annotation in annotations:
@@ -160,7 +181,7 @@ def get_stats(annotations, results):
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points])
-        stats.update({annotation.id:annotation_dict})
+        stats.update({annotation.id:annotation_dict})"""
 
     return stats, inside_points_l
 
@@ -238,37 +259,43 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         
     return None
 
-def run(cyto_job, parameters):
+def run(cyto_job, parameters): # funcion principal del script - maneja el flujo del algoritmo
 
+    # control de version y parametros
     logging.info("----- test software v%s -----", __version__)
     logging.info("Entering run(cyto_job=%s, parameters=%s)", cyto_job, parameters)
 
     job = cyto_job.job
     project = cyto_job.project
 
+    # creamos carpeta para guardar archivos temporales 
     working_path = os.path.join("tmp", str(job.id))
     if not os.path.exists(working_path):
         logging.info("Creating working directory: %s", working_path)
         os.makedirs(working_path)
 
     try:
-
-        job.update(progress=0, statusComment="Recogiendo anotaciones Stats")
-        anotaciones = get_stats_annotations(parameters)
         
-        if len(anotaciones) == 0:
-            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar anotaciones stats!")
+        # recoger anotaciones manuales "Stats"
+        job.update(progress=0, statusComment="Recogiendo anotaciones manuales con el término 'Stats'")
+        anotaciones = get_stats_annotations(parameters)
+         
+        if len(anotaciones) == 0: # terminamos Job si no hay (o no se pueden recuperar) anotaciones manuales
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar anotaciones manuales con el término 'Stats'")
 
-        job.update(progress=15, statusComment="Recogiendo resultados")
+        # recoger resultados
+        job.update(progress=5, statusComment="Recogiendo resultados")
         resultados = get_results(parameters)
 
-        if len(resultados) == 0:
-            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados para las anotaciones dadas!")
+        if len(resultados) == 0: # terminamos Job si no hay (o no se pueden recuperar) resultados
+            job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados")
 
-        job.update(progress=30, statusComment="Calculando estadísticas")
+
+        # calcular estadisticas
+        job.update(progress=20, statusComment="Calculando estadísticas")
         stats, inside_points_l = get_stats(anotaciones, resultados)
 
-        if len(stats) == 0:
+        if len(stats) == 0: # terminamos Job si no se han podido calcular las estadísticas
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
 
         job.update(progress=60, statusComment="Generando archivo .JSON con los resultados")
@@ -312,6 +339,7 @@ def run(cyto_job, parameters):
         
 
     finally:
+        # borramos archivos temporales antes de finalizar
         logging.info("Deleting folder %s", working_path)
         shutil.rmtree(working_path, ignore_errors=True)
         logging.debug("Leaving run()")
@@ -320,6 +348,8 @@ if __name__ == '__main__':
 
     logging.debug("Command: %s", sys.argv)
 
+    # esatblecemos conexion con el host y creamos un nuevo Job
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
 
+        # funcion principal del script
         run(cyto_job, cyto_job.parameters)
