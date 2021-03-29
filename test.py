@@ -43,6 +43,7 @@ def get_results(params):
 
         [print(str(job.name)[:17]) for job in jobs]
         jobs_ids = [job.id for job in jobs if (job.name[:17] != "Show Region Stats")]
+        print(jobs_ids)
 
 
         """for job_id in jobs_ids:
