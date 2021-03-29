@@ -139,7 +139,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
                     pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
                     cter = len(ins_pts)
-                    ins_p = {}
+                    ins_p = []
                     [ins_p.append({"x":p[0], "y":p[1]}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     particular_info ={
