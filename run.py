@@ -72,9 +72,9 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
                     continue
 
 
-            delta += get_new_delta(len(jobs_ids), 5, 20)
-            print(delta)
-            job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
+        delta += get_new_delta(len(jobs_ids), 5, 20)
+        print(delta)
+        job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
 
     # cargamos los resultados a partir de los archivos que hemos descargado
     temp_files = os.listdir("tmp")
