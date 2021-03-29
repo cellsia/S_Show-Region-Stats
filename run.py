@@ -8,7 +8,7 @@ import os
 import cytomine
 from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
-from shapely.geometry import MultiPoint
+from shapely.geometry import MultiPoint, Polygon
 
 __version__ = "1.1.3"
 
@@ -37,7 +37,7 @@ def get_stats_annotations(params): # funcion para sacar las anotaciones manuales
 
 get_new_delta = lambda n, a, b: (b - a) / n # calcular aumento delta para barra de progreso
 
-def get_results(params): # funcion para cargar los resultados a partir de los arhivos .json cargados. 
+def get_results(params, job): # funcion para cargar los resultados a partir de los arhivos .json cargados. 
 
     results = [] # array con resultados 
     equiv = {} # diccionario de equivalencias (filename - cytomine_image_term_id)
@@ -73,6 +73,7 @@ def get_results(params): # funcion para cargar los resultados a partir de los ar
 
 
             delta += get_new_delta(len(jobs_ids), 5, 20)
+            print(delta)
             job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
 
     # cargamos los resultados a partir de los archivos que hemos descargado
@@ -99,6 +100,9 @@ def process_polygon(polygon): # funcion que procesa .location de anotacion manua
     for i in range(0, len(pol)):
         pol[i] = pol[i].rstrip(" ").lstrip(" ")
         pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
+        pol[i] = tuple(pol[i])
+        pol[i][0] = float(pol[i][0])
+        pol[i][1] = float(pol[i][1])
     return pol
 
 def process_points(points):
@@ -137,7 +141,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
 
     for annotation in annotations:
         annotation_dict, inside_points = {}, {}
-        polygon = process_polygon(annotation.location)
+        polygon = Polygon(process_polygon(annotation.location))
         print(polygon)
         
     
@@ -286,7 +290,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # recoger resultados
         job.update(progress=5, statusComment="Recogiendo resultados")
-        resultados = get_results(parameters)
+        resultados = get_results(parameters, job)
 
         if len(resultados) == 0: # terminamos Job si no hay (o no se pueden recuperar) resultados
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados")
