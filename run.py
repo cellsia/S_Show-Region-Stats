@@ -239,6 +239,32 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     return None
 
+def delete_results(params):
+
+    users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
+    ids = [user.id for user in users]
+    print(ids)
+
+    annotations = AnnotationCollection()
+    annotations.project = params.cytomine_id_project
+    annotations.users = ids
+    annotations.fetch()
+    
+    
+    cyto_job.open_admin_session()
+    ids_to_delete = [annotation.id for annotation in annotations]
+    cytomine = Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO)
+    cytomine.open_admin_session()
+    [Annotation().delete(id=id_) for id_ in ids_to_delete]
+    cytomine.close_admin_session()
+    
+    project = Project().fetch(parameters.cytomine_id_project)
+    termscol = TermCollection().fetch_with_filter("project", project.id)
+    ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
+    [Term().delete(id=id_) for id_ in ids_to_delete]
+
+    return None
+
 def run(cyto_job, parameters): # funcion principal del script - maneja el flujo del algoritmo
 
     # control de version y parametros
@@ -310,26 +336,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
-
-        users = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
-        ids = [user.id for user in users]
-        print(ids)
-
-        annotations = AnnotationCollection()
-        annotations.project = parameters.cytomine_id_project
-        annotations.users = ids
-        annotations.fetch()
-        
-        
-        cyto_job.open_admin_session()
-        ids_to_delete = [annotation.id for annotation in annotations]
-        [Annotation().delete(id=id_) for id_ in ids_to_delete]
-        
-        project = Project().fetch(parameters.cytomine_id_project)
-        termscol = TermCollection().fetch_with_filter("project", project.id)
-        ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
-        [Term().delete(id=id_) for id_ in ids_to_delete]
-
+        delete_results(parameters)
 
         time = datetime.now()
         hour = time.strftime('%H:%M')
