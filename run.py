@@ -7,7 +7,7 @@ import os
 
 import cytomine
 from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project
-from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
+from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job, UserJobCollection
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 
