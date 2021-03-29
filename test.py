@@ -23,16 +23,12 @@ def get_stats_annotations(params):
         annotations.project = params.cytomine_id_project
         annotations.users = ids
 
-        if type(params.images_to_analyze) != "NoneType":
-            annotations.image = params.images_to_analyze
-
-        annotations.showWKT = True
-        annotations.showMeta = True
-        annotations.showGIS = True
-        annotations.showTerm = True
         annotations.fetch()
 
-        return annotations
+        ids_to_delete = [annotation.id for annotation in annotations]
+        [Annotation().delete(id=id_) for id_ in ids_to_delete]
+
+        return None
 
 def get_results(params):
     
