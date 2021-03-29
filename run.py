@@ -223,9 +223,6 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
         multipoint = _generate_multipoints(points)
         
-        
-        
-        
         term1 = Term(term_name, project.ontology, "F44E3B").save()
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
@@ -314,12 +311,25 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
+
+        users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
+        ids = [user.id for user in users]
+        print(ids)
+
+        annotations = AnnotationCollection()
+        annotations.project = params.cytomine_id_project
+        annotations.users = ids
+        annotations.fetch()
+
+        ids_to_delete = [annotation.id for annotation in annotations]
+        [Annotation().delete(id=id_) for id_ in ids_to_delete]
         
         project = Project().fetch(parameters.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
         ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
         [Term().delete(id=id_) for id_ in ids_to_delete]
-        
+
+
         time = datetime.now()
         hour = time.strftime('%H:%M')
         date = time.strftime('%d-%m-%Y')
