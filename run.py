@@ -312,12 +312,12 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
 
-        users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
+        users = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
         ids = [user.id for user in users]
         print(ids)
 
         annotations = AnnotationCollection()
-        annotations.project = params.cytomine_id_project
+        annotations.project = parameters.cytomine_id_project
         annotations.users = ids
         annotations.fetch()
 
