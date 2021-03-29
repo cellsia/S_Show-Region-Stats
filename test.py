@@ -3,7 +3,7 @@ import sys
 from argparse import ArgumentParser
 
 from cytomine import Cytomine
-from cytomine.models import Property, Project, Annotation, ImageInstance
+from cytomine.models import AnnotationCollection
 
 
 def run(params):
