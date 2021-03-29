@@ -44,8 +44,10 @@ def get_results(params):
         jobs.project = params.cytomine_id_project
         jobs.fetch()
 
-        for job in jobs:
-            print(job)
+        job_ids = [job.id for job in jobs]
+        jobs = None
+
+        print(job_ids)
         
         return None
 
