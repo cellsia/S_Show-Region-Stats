@@ -37,6 +37,17 @@ def get_stats_annotations(params):
 
         return annotations
 
+def get_results(params):
+
+    jobs = JobCollection()
+    jobs.project = params.cytomine_id_project
+    jobs.fetch()
+
+    for job in jobs:
+        print(job)
+    
+    return None
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog="Cytomine Python client example")
@@ -59,4 +70,6 @@ if __name__ == '__main__':
     params, other = parser.parse_known_args(sys.argv[1:])
 
 
-    get_stats_annotations(params)
+    #get_stats_annotations(params)
+
+    get_results(params)
