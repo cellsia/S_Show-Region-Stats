@@ -38,15 +38,16 @@ def get_stats_annotations(params):
         return annotations
 
 def get_results(params):
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
-    jobs = JobCollection()
-    jobs.project = params.cytomine_id_project
-    jobs.fetch()
+        jobs = JobCollection()
+        jobs.project = params.cytomine_id_project
+        jobs.fetch()
 
-    for job in jobs:
-        print(job)
-    
-    return None
+        for job in jobs:
+            print(job)
+        
+        return None
 
 
 if __name__ == '__main__':
