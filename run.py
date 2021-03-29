@@ -140,7 +140,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
                     cter = len(ins_pts)
                     ins_p = []
                     print(ins_pts)
-                    [ins_p.append({"x":p[0], "y":p[1]}) for p in ins_pts]
+                    [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     particular_info ={
                         "conteo_{}_anotacion".format(key):cter,
