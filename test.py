@@ -3,7 +3,9 @@ import sys
 from argparse import ArgumentParser
 
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, JobCollection, JobDataCollection
+from cytomine.models import AnnotationCollection, JobCollection
+from cytomine.models.software import JobDataCollection
+
 
 def get_stats_annotations(params):
 
