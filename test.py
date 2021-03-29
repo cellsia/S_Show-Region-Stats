@@ -51,10 +51,10 @@ def get_results(params):
 
         for job_id in job_ids:
 
-            #jobdatacol = JobDataCollection().fetch_with_filter("job", job_id)
+            jobdatacol = JobDataCollection().fetch_with_filter("job", job_id)
             #print(jobdatacol)
 
-            jobdata = JobData().fetch(job_id)
+            jobdata = JobData().fetch(jobdatacol.id)
             print(jobdata)
 
         
