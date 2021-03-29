@@ -264,7 +264,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         if len(stats) == 0: # terminamos Job si no se han podido calcular las estadísticas
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
 
-        job.update(progress=60, statusComment="Generando archivo .JSON con los resultados")
+       """ job.update(progress=60, statusComment="Generando archivo .JSON con los resultados")
         output_path = os.path.join(working_path, "stats.json")
         f = open(output_path, "w+")
         json.dump(stats, f)
@@ -301,7 +301,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             if boolean:
                 _load_multi_class_points(job, image_id, item[1], id_, parameters)
             else:
-                continue
+                continue"""
         
 
     finally:
