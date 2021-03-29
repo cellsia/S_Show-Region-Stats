@@ -3,7 +3,7 @@ import sys
 from argparse import ArgumentParser
 
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, JobCollection
+from cytomine.models import AnnotationCollection, JobCollection, JobDataCollection
 
 def get_stats_annotations(params):
 
@@ -47,7 +47,11 @@ def get_results(params):
         job_ids = [job.id for job in jobs]
         jobs = None
 
-        print(job_ids)
+        for job_id in job_ids:
+
+            jobdatacol = JobDataCollection().fetch_with_filter("job", job_id)
+            print(jobdatacol)
+
         
         return None
 
