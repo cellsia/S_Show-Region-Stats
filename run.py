@@ -318,9 +318,11 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         annotations.project = parameters.cytomine_id_project
         annotations.users = ids
         annotations.fetch()
-
-        ids_to_delete = [annotation.id for annotation in annotations]
-        [Annotation().delete(id=id_) for id_ in ids_to_delete]
+        
+        with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+            cytomine.open_admin_session()
+            ids_to_delete = [annotation.id for annotation in annotations]
+            [Annotation().delete(id=id_) for id_ in ids_to_delete]
         
         project = Project().fetch(parameters.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
