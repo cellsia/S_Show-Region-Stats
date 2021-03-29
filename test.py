@@ -42,7 +42,7 @@ def get_results(params):
         jobs.fetch()
 
         [print(job.name) for job in jobs]
-        jobs_ids = [job.id for job in jobs]
+        jobs_ids = [job.id for job in jobs if (job.name[:17] != "Show Region Stats")]
 
 
         """for job_id in jobs_ids:
