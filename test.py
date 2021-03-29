@@ -149,8 +149,8 @@ if __name__ == '__main__':
 
     #results = get_results(params)
 
-    #create_term(params)
+    create_term(params)
 
-    delete_term(params)
+#    delete_term(params)
     
     
