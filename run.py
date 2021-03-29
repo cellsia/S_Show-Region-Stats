@@ -143,7 +143,7 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                     inside_points.update({key:ins_p})
                     particular_info ={
                         "conteo_{}_anotacion".format(key):cter,
-                        "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
+                        "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points]) # guardamos los puntos de dentro para trabajar con ellos posteriormente
