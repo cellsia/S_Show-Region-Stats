@@ -47,7 +47,7 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
-    jobs_ids = [job.id for job in jobs]
+    jobs_ids = [j.id for j in jobs]
 
 
     for job_id in jobs_ids:
@@ -56,9 +56,9 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
         jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
         jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
 
-        for job in jobdatacol:
+        for _job in jobdatacol:
 
-            jobdata = JobData().fetch(job.id)
+            jobdata = JobData().fetch(_job.id)
             filename = jobdata.filename
 
             allowed_params = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
@@ -100,9 +100,9 @@ def process_polygon(polygon): # funcion que procesa .location de anotacion manua
     for i in range(0, len(pol)):
         pol[i] = pol[i].rstrip(" ").lstrip(" ")
         pol[i] = pol[i].rstrip(")").lstrip("(").split(" ")
-        pol[i] = tuple(pol[i])
         pol[i][0] = float(pol[i][0])
         pol[i][1] = float(pol[i][1])
+        pol[i] = tuple(pol[i])
     return pol
 
 def process_points(points):
