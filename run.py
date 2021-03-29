@@ -9,6 +9,7 @@ import cytomine
 from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint, Polygon
+from datetime import datetime
 
 __version__ = "1.1.3"
 
@@ -207,7 +208,7 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params) -> None:
+def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, date) -> None:
 
     terms = [key for key,value in detections.items()]
 
@@ -218,16 +219,14 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     for idx, points in enumerate(detections.values()):
 
-        term_name = "INSIDE_POINTS_{}_ANOTACION_{}".format(terms[idx], id_)
+        term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, hour, date)
 
         multipoint = _generate_multipoints(points)
         
-        termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
-        l = [t.name for t in termscol]
         
-        if not(term_name in l):
-            term1 = Term(term_name, project.ontology, "F44E3B").save()
-            termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
+        
+        
+        term1 = Term(term_name, project.ontology, "F44E3B").save()
             
         t1 = [t.id for t in termscol if t.name == term_name]
         annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
@@ -303,7 +302,11 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         job.update(progress=75, statusComment="Actualizando propiedades de las anotaciones Stats")
         update_properties(stats, job)
 
-        """job.update(progress=85, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+        # subimos las anotaciones MultiPoint como detecciones
+        job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
+        hour = time.strftime('%H:%M')
+        date = time.strftime('%d-%m-%Y')
+        
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
@@ -316,9 +319,9 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
                     boolean = False
 
             if boolean:
-                _load_multi_class_points(job, image_id, item[1], id_, parameters)
+                _load_multi_class_points(job, image_id, item[1], id_, parameters, hour, date)
             else:
-                continue"""
+                continue
         
 
     finally:
