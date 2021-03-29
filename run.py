@@ -253,7 +253,7 @@ def delete_results(params, lista_id):
     
     
     cyto_job.open_admin_session()
-    ids_to_delete = [annotation.id for annotation in annotations if (annotation.term not in lista_id)]
+    ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term not in lista_id)]
     cytomine = Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO)
     cytomine.open_admin_session()
     [Annotation().delete(id=id_) for id_ in ids_to_delete]
