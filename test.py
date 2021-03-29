@@ -6,8 +6,8 @@ from argparse import ArgumentParser
 
 from cytomine import Cytomine
 from cytomine.models import AnnotationCollection, JobCollection, JobData, Project
-from cytomine.models.software import JobDataCollection, JobParameterCollection, TermCollection
-
+from cytomine.models.software import JobDataCollection, JobParameterCollection
+from cytomine.models.ontology import TermCollection
 
 
 def get_stats_annotations(params):
