@@ -89,16 +89,18 @@ def get_results(params):
 
 def create_term(params):
 
-    project = Project().fetch(params.cytomine_id_project)
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
-    termscol = TermCollection().fetch_with_filter("project", project.id)
-    [print(term) for term in termscol]
-    
+        project = Project().fetch(params.cytomine_id_project)
 
-    term = Term("Hello Term", project.ontology, "F44E3B").save()
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        [print(term) for term in termscol]
+        
 
-    termscol = TermCollection().fetch_with_filter("project", project.id)
-    [print(term) for term in termscol]
+        term = Term("Hello Term", project.ontology, "F44E3B").save()
+
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        [print(term) for term in termscol]
 
     return None
 
