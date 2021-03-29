@@ -257,8 +257,9 @@ def delete_results(params):
     cytomine.open_admin_session()
     [Annotation().delete(id=id_) for id_ in ids_to_delete]
     cytomine.close_admin_session()
+    cytomine = None
     
-    project = Project().fetch(parameters.cytomine_id_project)
+    project = Project().fetch(params.cytomine_id_project)
     termscol = TermCollection().fetch_with_filter("project", project.id)
     ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
     [Term().delete(id=id_) for id_ in ids_to_delete]
