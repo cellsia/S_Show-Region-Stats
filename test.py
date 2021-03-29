@@ -5,7 +5,7 @@ import os
 from argparse import ArgumentParser
 
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, JobCollection, JobData, Project
+from cytomine.models import AnnotationCollection, JobCollection, JobData, Project, Term
 from cytomine.models.software import JobDataCollection, JobParameterCollection
 from cytomine.models.ontology import TermCollection
 
