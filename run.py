@@ -230,7 +230,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
             
         t1 = [t.id for t in termscol if t.name == term_name]
         annotations = AnnotationCollection()
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=str(t1)))
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1[0]))
         annotations.save()
         """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
         AnnotationTerm(annotation, term1).save()"""
@@ -308,6 +308,12 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
+        
+        project = Project().fetch(params.cytomine_id_project)
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
+        [Term().delete(id=id_) for id_ in ids_to_delete]
+        
         time = datetime.now()
         hour = time.strftime('%H:%M')
         date = time.strftime('%d-%m-%Y')
