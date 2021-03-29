@@ -108,7 +108,7 @@ def process_points(points): # funcion que procesa los puntos de cada termino par
     pts = [[p["x"],p["y"]] for p in points]
     return pts
 
-def get_stats(annotations, results): # funcion que calcula las estadísticas y va actualizando las propiedades de cada anotación 
+def get_stats(annotations, results, job): # funcion que calcula las estadísticas y va actualizando las propiedades de cada anotación 
 
     stats = {} # diccionario con estadisticas
     inside_points_l = [] # array que va a contener los puntos de dentro de cada anotacion (+ items)
@@ -263,7 +263,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # calcular estadisticas
         job.update(progress=20, statusComment="Calculando estadísticas")
-        stats, inside_points_l = get_stats(anotaciones, resultados)
+        stats, inside_points_l = get_stats(anotaciones, resultados, job)
 
         if len(stats) == 0: # terminamos Job si no se han podido calcular las estadísticas
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
