@@ -14,6 +14,9 @@ def get_stats_annotations(params):
 
      with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
 
+        users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
+        print(users)
+
         annotations = AnnotationCollection()
 
         annotations.project = params.cytomine_id_project
@@ -145,11 +148,11 @@ if __name__ == '__main__':
     params, other = parser.parse_known_args(sys.argv[1:])
 
 
-    #get_stats_annotations(params)
+    get_stats_annotations(params)
 
     #results = get_results(params)
 
-    create_term(params)
+    #create_term(params)
 
 #    delete_term(params)
 
