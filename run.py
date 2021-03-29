@@ -209,7 +209,7 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, date) -> None:
+def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, date, mantener_ids) -> None:
 
     terms = [key for key,value in detections.items()]
 
@@ -228,7 +228,8 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
         t1 = [t.id for t in termscol if t.name == term_name]
-        print(t1)
+        print(t1[0])
+        mantener_ids.append(t1[0])
         
         annotations = AnnotationCollection()
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
@@ -239,7 +240,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     return None
 
-def delete_results(params):
+def delete_results(params, lista_id):
 
     users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
     ids = [user.id for user in users]
@@ -252,7 +253,7 @@ def delete_results(params):
     
     
     cyto_job.open_admin_session()
-    ids_to_delete = [annotation.id for annotation in annotations]
+    ids_to_delete = [annotation.id for annotation in annotations if (annotation.term not in lista_id)]
     cytomine = Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO)
     cytomine.open_admin_session()
     [Annotation().delete(id=id_) for id_ in ids_to_delete]
@@ -337,11 +338,12 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
-        delete_results(parameters)
 
         time = datetime.now()
         hour = time.strftime('%H:%M')
         date = time.strftime('%d-%m-%Y')
+
+        mantener_ids = []
         
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
@@ -355,9 +357,11 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
                     boolean = False
 
             if boolean:
-                _load_multi_class_points(job, image_id, item[1], id_, parameters, hour, date)
+                _load_multi_class_points(job, image_id, item[1], id_, parameters, hour, date, mantener_ids)
             else:
                 continue
+
+        delete_results(parameters, mantener_ids)
         
 
     finally:
