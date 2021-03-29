@@ -113,6 +113,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
 
     stats = {} # diccionario con estadisticas
     inside_points_l = [] # array que va a contener los puntos de dentro de cada anotacion (+ items)
+    delta = 20 
 
     for annotation in annotations:
         annotation_dict, inside_points = {}, {}
@@ -148,6 +149,9 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
         inside_points_l.append([annotation.id, inside_points])
         stats.update({annotation.id:annotation_dict})
+
+        delta += get_new_delta(len(annotations), 20, 60)
+        job.update(progress=int(delta), statusComment="Calculando estadísticas")
 
     return stats, inside_points_l
 
