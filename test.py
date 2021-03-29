@@ -115,7 +115,7 @@ def delete_term(params):
 
 
         
-        t_names = [t.name for t in termscol if t.name = "Hello Term"]
+        t_names = [t.name for t in termscol if t.name == "Hello Term"]
         Term().delete(id=t_names[0])
 
     
