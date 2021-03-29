@@ -104,6 +104,26 @@ def create_term(params):
 
     return None
 
+def delete_term(params):
+
+    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+        
+        project = Project().fetch(params.cytomine_id_project)
+
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        [print(term) for term in termscol]
+
+
+        
+        t_names = [t.name for t in termscol if t.name = "Hello Term"]
+        Term().delete(id=t_names[0])
+
+    
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        [print(term) for term in termscol]
+
+    return None
+
 if __name__ == '__main__':
     parser = ArgumentParser(prog="Cytomine Python client example")
 
@@ -129,6 +149,8 @@ if __name__ == '__main__':
 
     #results = get_results(params)
 
-    create_term(params)
+    #create_term(params)
+
+    delete_term(params)
     
     
