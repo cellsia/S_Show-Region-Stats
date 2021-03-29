@@ -67,7 +67,7 @@ def get_results(params):
                 filename = jobdata.filename
 
                 allowed_params = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
-                [equiv.update({filename:int(param.value)}) for param in jobparamscol if (str(param.split(" : ")[1] in allowed_params)) ]
+                [equiv.update({filename:int(param.value)}) for param in jobparamscol if (str(param).split(" : ")[1] in allowed_params) ]
 
                 # si el .json tiene "detections en el nombre de archivo lo descargamos y lo metemos en la carpeta tmp/"
                 if "detections" in filename:
