@@ -97,7 +97,7 @@ def create_term(params):
         [print(term) for term in termscol]
         
 
-        term = Term("Hello Term", project.ontology, "F44E3B").update()
+        term = Term("Hello Term", project.ontology, "F44E3B").save()
 
         termscol = TermCollection().fetch_with_filter("project", project.id)
         [print(term) for term in termscol]
