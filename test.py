@@ -86,7 +86,8 @@ def get_results(params):
                     with open("tmp/"+filename, 'r') as json_file:
                         data = json.load(json_file)
                         json_file.close()
-                    results.append({"image":image,"data":data}) # añadimos el resultado con su imagen asociada
+                    if image != "":
+                        results.append({"image":image,"data":data}) # añadimos el resultado con su imagen asociada
                 except KeyError:
                     continue
 
