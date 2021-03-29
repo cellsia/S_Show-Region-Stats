@@ -73,7 +73,6 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
 
 
         delta += get_new_delta(len(jobs_ids), 5, 20)
-        print(delta)
         job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
 
     # cargamos los resultados a partir de los archivos que hemos descargado
@@ -140,6 +139,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
                     ins_pts = [p for p in pts if polygon.contains(p)]
                     cter = len(ins_pts)
                     ins_p = []
+                    print(ins_pts)
                     [ins_p.append({"x":p[0], "y":p[1]}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     particular_info ={
