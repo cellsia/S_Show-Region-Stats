@@ -309,7 +309,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
         
-        project = Project().fetch(params.cytomine_id_project)
+        project = Project().fetch(parameters.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
         ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
         [Term().delete(id=id_) for id_ in ids_to_delete]
