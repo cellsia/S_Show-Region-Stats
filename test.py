@@ -27,18 +27,6 @@ def get_stats_annotations(params):
         annotations.showTerm = True
         annotations.fetch()
 
-        for annotation in annotations:
-            print("ID: {} | Image: {} | Project: {} | Term: {} | User: {} | Area: {} | Perimeter: {} | WKT: {}".format(
-                annotation.id,
-                annotation.image,
-                annotation.project,
-                annotation.term,
-                annotation.user,
-                annotation.area,
-                annotation.perimeter,
-                annotation.location
-            ))
-
         return annotations
 
 def get_results(params):
@@ -52,10 +40,12 @@ def get_results(params):
         jobs = JobCollection()
         jobs.project = params.cytomine_id_project
         jobs.fetch()
+
+        [print(job) for job in jobs]
         jobs_ids = [job.id for job in jobs]
 
 
-        for job_id in jobs_ids:
+        """for job_id in jobs_ids:
 
             # para cada job sacamos prametros y coleccion de datos
             jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
@@ -91,7 +81,7 @@ def get_results(params):
                 except KeyError:
                     continue
 
-        os.system("cd tmp&&rm detections*") # eliminamos archivos temporales
+        os.system("cd tmp&&rm detections*") # eliminamos archivos temporales"""
 
         return results
 
@@ -120,6 +110,5 @@ if __name__ == '__main__':
     #get_stats_annotations(params)
 
     results = get_results(params)
-    print(len(results))
     
     
