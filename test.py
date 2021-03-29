@@ -86,8 +86,8 @@ def get_results(params):
                     with open("tmp/"+filename, 'r') as json_file:
                         data = json.load(json_file)
                         json_file.close()
-                    if image != "":
-                        results.append({"image":image,"data":data}) # añadimos el resultado con su imagen asociada
+                    
+                    results.append({"image":image,"data":data}) # añadimos el resultado con su imagen asociada
                 except KeyError:
                     continue
 
@@ -121,6 +121,6 @@ if __name__ == '__main__':
 
     results = get_results(params)
     for r in results:
-        print(r["image"], end="\n\n\n")
+        print(r["image"],sep="|", end="\n\n\n")
     
     
