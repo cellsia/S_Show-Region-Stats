@@ -257,12 +257,11 @@ def delete_results(params, lista_id):
     cytomine = Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO)
     cytomine.open_admin_session()
     [Annotation().delete(id=id_) for id_ in ids_to_delete]
-    cytomine.close_admin_session()
-    cytomine = None
+    
     
     project = Project().fetch(params.cytomine_id_project)
     termscol = TermCollection().fetch_with_filter("project", project.id)
-    ids_to_delete = [t.id for t in termscol if t.name != "Stats"]
+    ids_to_delete = [t.id for t in termscol if (t.name != "Stats" and not (t.id in lista_id))]
     [Term().delete(id=id_) for id_ in ids_to_delete]
 
     return None
