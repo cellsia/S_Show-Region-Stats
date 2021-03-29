@@ -13,6 +13,7 @@ from cytomine.models.ontology import TermCollection
 def get_stats_annotations(params):
 
      with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+        cytomine.open_admin_session()
 
         users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
         ids = [user.id for user in users]
