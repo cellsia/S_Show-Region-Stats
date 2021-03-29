@@ -41,7 +41,7 @@ def get_results(params):
         jobs.project = params.cytomine_id_project
         jobs.fetch()
 
-        [print(str(job.name)[:17]) for job in jobs]
+        
         jobs_ids = [job.id for job in jobs if (job.name[:17] != "Show Region Stats")]
         print(jobs_ids)
 
@@ -86,6 +86,20 @@ def get_results(params):
 
         return results
 
+def create_term(params):
+
+    project = Project().fecth(params.cytomine_id_project)
+
+    termscol = TermCollection().fetch_with_filter("project", project.id)
+    [print(term) for term in termscol]
+    
+
+    term = Term("Hello Term", project.ontology, "F44E3B").save()
+
+    termscol = TermCollection().fetch_with_filter("project", project.id)
+    [print(term) for term in termscol]
+
+    return None
 
 if __name__ == '__main__':
     parser = ArgumentParser(prog="Cytomine Python client example")
@@ -110,6 +124,8 @@ if __name__ == '__main__':
 
     #get_stats_annotations(params)
 
-    results = get_results(params)
+    #results = get_results(params)
+
+    create_term(params)
     
     
