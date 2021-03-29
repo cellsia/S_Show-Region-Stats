@@ -13,13 +13,15 @@ from shapely.geometry import MultiPoint
 __version__ = "1.0.8"
 
 
-def get_stats_annotations(params):
+def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
 
     annotations = AnnotationCollection()
 
+    # filtramos todas las anotaciones manuales del proyecto que tengan el termino "Stats"
     annotations.project = params.cytomine_id_project
     annotations.term = "Stats"
 
+    # si se especifica alguna imagen, filtramos por imagen
     if type(params.images_to_analyze) != "NoneType":
         annotations.image = params.images_to_analyze
 
@@ -29,20 +31,24 @@ def get_stats_annotations(params):
     annotations.showTerm = True
     annotations.fetch()
 
+    # devolvemos anotaciones
     return annotations
 
-def get_results(params):
+def get_results(params): # funcion para cargar los resultados a partir de los arhivos .json cargados. 
 
-    results = []
-    equiv, equiv2 = {}, {}
+    results = [] # array con resultados 
+    equiv = {} # diccionario de equivalencias (filename - cytomine_image_term_id)
 
+    # sacamos lista con todos los job id's
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
     jobs_ids = [job.id for job in jobs]
 
+
     for job_id in jobs_ids:
 
+        # para cada job sacamos prametros y coleccion de datos
         jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
         jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
 
@@ -51,33 +57,31 @@ def get_results(params):
             jobdata = JobData().fetch(job.id)
             filename = jobdata.filename
 
-            for param in jobparamscol:
-                if str(param).split(" : ")[1] in ["cytomine_image"]:
-                    equiv.update({filename:int(param.value)})
-                if str(param).split(" : ")[1] in ["cytomine_id_term"]:
-                    equiv2.update({filename:param.value})
+            allowed_params = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
+            [equiv.update({filename:int(param.value)}) for param in jobparamscol if (str(param.split(" : ")[1] in allowed_params)) ]
 
+            # si el .json tiene "detections en el nombre de archivo lo descargamos y lo metemos en la carpeta tmp/"
             if "detections" in filename:
                 try:
                     jobdata.download(os.path.join("tmp/", filename))
                 except AttributeError:
                     continue
 
+    # cargamos los resultados a partir de los archivos que hemos descargado
     temp_files = os.listdir("tmp")
     for i in range(0, len(temp_files)):
         if temp_files[i][-4:] == "json":
             filename = temp_files[i]
             try:
-                image = equiv[filename]
-                terms = equiv2[filename]
+                image = equiv[filename] # recuperamos la imagen a la que hace refereancia cada archivo bassandonos en el dic de equivalencias
                 with open("tmp/"+filename, 'r') as json_file:
                     data = json.load(json_file)
                     json_file.close()
-                results.append({"image":image, "terms":terms ,"data":data})
+                results.append({"image":image,"data":data}) # añadimos el resultado con su imagen asociada
             except KeyError:
                 continue
 
-    os.system("cd tmp&&rm detections*")
+    os.system("cd tmp&&rm detections*") # eliminamos archivos temporales
 
     return results
 
