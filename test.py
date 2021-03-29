@@ -56,7 +56,7 @@ def get_results(params):
             for jobdata in jobdatacol:        
 
                 jobdata = JobData().fetch(jobdata.id)
-                print(jobdata)
+                print(jobdata.filename)
 
         
         return None
