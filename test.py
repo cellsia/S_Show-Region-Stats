@@ -120,6 +120,6 @@ if __name__ == '__main__':
 
     results = get_results(params)
     for r in results:
-        print(r, end="\n\n\n")
+        print(r["image"], end="\n\n\n")
     
     
