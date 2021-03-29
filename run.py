@@ -219,7 +219,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     for idx, points in enumerate(detections.values()):
 
-        term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, hour, date)
+        term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, date, hour)
 
         multipoint = _generate_multipoints(points)
         
@@ -230,7 +230,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
             
         t1 = [t.id for t in termscol if t.name == term_name]
         annotations = AnnotationCollection()
-        annotations.append(Annotation(location=multipoint.wkt, id_image=params.image_id, id_project=params.id_project, id_terms=t1))
+        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
         annotations.save()
         """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
         AnnotationTerm(annotation, term1).save()"""
