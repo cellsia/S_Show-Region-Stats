@@ -304,6 +304,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
+        time = datetime.now()
         hour = time.strftime('%H:%M')
         date = time.strftime('%d-%m-%Y')
         
