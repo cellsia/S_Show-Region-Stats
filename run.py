@@ -227,8 +227,10 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         
         
         term1 = Term(term_name, project.ontology, "F44E3B").save()
+        termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
         t1 = [t.id for t in termscol if t.name == term_name]
+        
         annotations = AnnotationCollection()
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1[0]))
         annotations.save()
