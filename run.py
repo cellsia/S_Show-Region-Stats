@@ -124,7 +124,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
 
                 all_points = result["data"]
                 image_info, global_cter = {}, 0
-                for key, value in points.items():
+                for key, value in all_points.items():
                     count = len(value)
                     global_cter+=count
                     image_info.update({"conteo_{}_imagen".format(key):count})
@@ -134,7 +134,7 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
                 image_info.update({"imagen_anotacion":annotation.image})
                 annotation_dict.update({"info_imagen":image_info})
 
-                for key, value in points.items():
+                for key, value in all_points.items():
                     pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
                     cter = len(ins_pts)
