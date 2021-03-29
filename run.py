@@ -108,38 +108,37 @@ def process_points(points): # funcion que procesa los puntos de cada termino par
     pts = [[p["x"],p["y"]] for p in points]
     return pts
 
-def get_stats(annotations, results, job): # funcion que calcula las estadísticas y va actualizando las propiedades de cada anotación 
+def get_stats(annotations, results, job): # funcion que calcula las estadísticas
 
     stats = {} # diccionario con estadisticas
     inside_points_l = [] # array que va a contener los puntos de dentro de cada anotacion (+ items)
     delta = 20 
 
-    for annotation in annotations:
+    for annotation in annotations: # iteramos sobre cada anotación
         annotation_dict, inside_points = {}, {}
         polygon = Polygon(process_polygon(annotation.location))
-        print(polygon)
         
-        for result in results:
+        for result in results: # seleccionamos el resultado correspondiente a la imagen de la anotación
             if result["image"] == annotation.image:
 
+                # informacion general de la imagen 
                 all_points = result["data"]
                 image_info, global_cter = {}, 0
                 for key, value in all_points.items():
                     count = len(value)
                     global_cter+=count
                     image_info.update({"conteo_{}_imagen".format(key):count})
-
                 image_info.update({"conteo_total_imagen":global_cter})
                 image_info.update({"area_anotacion":annotation.area})
                 image_info.update({"imagen_anotacion":annotation.image})
                 annotation_dict.update({"info_imagen":image_info})
 
+                # informacion de cada termino
                 for key, value in all_points.items():
                     pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
                     cter = len(ins_pts)
                     ins_p = []
-                    print(ins_pts)
                     [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     particular_info ={
@@ -147,22 +146,24 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                         "densidad_{}_anotación(n/micron²)".format(key):cter/annotation.area
                     }
                     annotation_dict.update({"info_termino_{}".format(key):particular_info})
-        inside_points_l.append([annotation.id, inside_points])
-        stats.update({annotation.id:annotation_dict})
-
+        inside_points_l.append([annotation.id, inside_points]) # guardamos los puntos de dentro para trabajar con ellos posteriormente
+        stats.update({annotation.id:annotation_dict}) # atualizamos el diccionario de stats
+        
+        # barra de progres
         delta += get_new_delta(len(annotations), 20, 60)
         job.update(progress=int(delta), statusComment="Calculando estadísticas")
 
+    # devolvemos estadísticas y puntos de dentro de las anotaciones
     return stats, inside_points_l
 
-def update_properties(stats):
+def update_properties(stats): # funcion que actualiza propiedades de imagen y anotaciones manuales
     for id, dic in stats.items():
-        prop, prop2 = {}, {}
-        annotation = Annotation().fetch(id=int(id))
+        prop, prop2 = {}, {} # prop contiene las propiedades de la anotacion  y prop2 las de la imagen
+        annotation = Annotation().fetch(id=int(id)) # anotacion para cambiar sus prop
         for key, value in dic.items():
             if key == "info_imagen":
                 img_id = value["imagen_anotacion"]
-                image = ImageInstance().fetch(id=int(img_id))
+                image = ImageInstance().fetch(id=int(img_id)) # imagen para cambiar sus prop
                 for key2, value2 in value.items():
                     prop2.update({key2:value2})
             else:
@@ -268,7 +269,9 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         if len(stats) == 0: # terminamos Job si no se han podido calcular las estadísticas
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido calcular las estadísticas!")
 
-        """ job.update(progress=60, statusComment="Generando archivo .JSON con los resultados")
+        # generamos archivos con los resultados
+        job.update(progress=60, statusComment="Generando archivo .JSON con las estadísticas")
+
         output_path = os.path.join(working_path, "stats.json")
         f = open(output_path, "w+")
         json.dump(stats, f)
@@ -278,7 +281,9 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         job_data.upload(output_path)
 
         job.update(progress=65, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
+        delta = 65
         for item in inside_points_l:
+
             output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
             f = open(output_path2, "w+")
             json.dump(item[1], f)
@@ -286,11 +291,15 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
             job_data.upload(output_path2)
-            
-        job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
-        update_properties(stats)
 
-        job.update(progress=80, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
+            delta += get_new_delta(len(inside_points_l), 65, 70)
+            job.update(progress=delta, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
+
+        # actualizamos propiedades de anotaciones manuales e imagen
+        job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
+        update_properties(stats, job)
+
+        """job.update(progress=85, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
         for item in inside_points_l:
             annotation = Annotation().fetch(id=int(item[0]))
             id_ = int(item[0])
