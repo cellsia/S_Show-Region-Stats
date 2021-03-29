@@ -73,7 +73,7 @@ def get_results(params, job): # funcion para cargar los resultados a partir de l
 
 
         delta += get_new_delta(len(jobs_ids), 5, 20)
-        job.update(progress=int(delta), statusComment="Recogiendo anotaciones manuales con el término 'Stats'")        
+        job.update(progress=int(delta), statusComment="Recogiendo resultados")        
 
     # cargamos los resultados a partir de los archivos que hemos descargado
     temp_files = os.listdir("tmp")
@@ -156,7 +156,8 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
     # devolvemos estadísticas y puntos de dentro de las anotaciones
     return stats, inside_points_l
 
-def update_properties(stats): # funcion que actualiza propiedades de imagen y anotaciones manuales
+def update_properties(stats, job): # funcion que actualiza propiedades de imagen y anotaciones manuales
+    delta = 75
     for id, dic in stats.items():
         prop, prop2 = {}, {} # prop contiene las propiedades de la anotacion  y prop2 las de la imagen
         annotation = Annotation().fetch(id=int(id)) # anotacion para cambiar sus prop
@@ -192,6 +193,9 @@ def update_properties(stats): # funcion que actualiza propiedades de imagen y an
                 current_property.update()
             else:
                 Property(image, key=k, value=v).save()
+
+        delta += get_new_delta(len(stats), 75, 85)
+        job.update(progress=int(delta), statusComment="Actualizando propiedades de las anotaciones Stats")
 
     return None
 
@@ -292,11 +296,11 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
             job_data.upload(output_path2)
 
-            delta += get_new_delta(len(inside_points_l), 65, 70)
+            delta += get_new_delta(len(inside_points_l), 65, 75)
             job.update(progress=delta, statusComment="Generando archivos .JSON con los puntos de dentro de la(s) anotación(es)")
 
         # actualizamos propiedades de anotaciones manuales e imagen
-        job.update(progress=70, statusComment="Actualizando propiedades de las anotaciones Stats")
+        job.update(progress=75, statusComment="Actualizando propiedades de las anotaciones Stats")
         update_properties(stats, job)
 
         """job.update(progress=85, statusComment="Subiendo anotaciones manuales con los puntos de la anotación")
