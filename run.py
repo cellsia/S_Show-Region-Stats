@@ -137,8 +137,9 @@ def get_stats(annotations, results): # funcion que calcula las estadísticas y v
 
     for annotation in annotations:
         annotation_dict, inside_points = {}, {}
-        polygon = annotation.location
-        print(type(polygon))
+        polygon = process_polygon(annotation.location)
+        print(polygon)
+        
     
 
 
