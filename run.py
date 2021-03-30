@@ -247,6 +247,7 @@ def delete_results(params, lista_id):
     annotations = AnnotationCollection()
     annotations.project = params.cytomine_id_project
     annotations.users = ids
+    annotations.showTerm = True
     annotations.fetch()
     
     
