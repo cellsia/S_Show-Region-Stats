@@ -76,7 +76,7 @@
       "type": "String",
       "values-choice": ["True", "False"],
       "default-value":"False"
-    },
+    }
   ],
 
   "schema-version": "cytomine-0.1"
