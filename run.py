@@ -228,7 +228,6 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
         t1 = [t.id for t in termscol if t.name == term_name]
-        print(t1[0])
         mantener_ids.append(t1[0])
         
         annotations = AnnotationCollection()
@@ -244,7 +243,6 @@ def delete_results(params, lista_id):
 
     users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
     ids = [user.id for user in users]
-    print(ids)
 
     annotations = AnnotationCollection()
     annotations.project = params.cytomine_id_project
