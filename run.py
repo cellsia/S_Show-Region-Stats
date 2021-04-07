@@ -360,7 +360,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             else:
                 continue
 
-        if parameters.clear_results == "True":
+        if parameters.clear_results == True:
             delete_results(parameters, mantener_ids)
         
 
