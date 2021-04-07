@@ -72,7 +72,7 @@
       "name": "Borrar resultados anteriores",
       "description": "Si se marca la casilla se borrarán los resultados anteriores para facilitar la visualización",
       "set-by-server": false,
-      "optional": false,
+      "optional": true,
       "type": "Boolean"
       
     }
