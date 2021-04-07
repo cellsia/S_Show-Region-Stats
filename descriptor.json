@@ -72,10 +72,9 @@
       "name": "Borrar resultados anteriores",
       "description": "Si se selecciona 'True' se borrarán los resultados anteriores para facilitar la visualización",
       "set-by-server": false,
-      "optional": true,
-      "type": "String",
-      "values-choice": ["True", "False"],
-      "default-value":"False"
+      "optional": false,
+      "type": "Domain",
+      "values-choice": ["True", "False"]
     }
   ],
 
