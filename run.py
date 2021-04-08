@@ -250,7 +250,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     return None
 
-def delete_results(params, lista_id):
+def delete_results(params, lista_id, job):
 
     users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
     ids = [user.id for user in users]
@@ -273,7 +273,11 @@ def delete_results(params, lista_id):
         project = Project().fetch(params.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
         ids_to_delete = [t.id for t in termscol if (t.name != "Stats" and not (t.id in lista_id))]
-        [Term().delete(id=id_) for id_ in ids_to_delete]
+
+        for id_ in ids_to_delete:
+            Term().delete(id=id_)
+            delta += get_new_delta(len(ids_to_delete), 95, 100)
+            job.update(progress=int(delta), statusComment="Borrando reultados anteriores")
 
     return None
 
@@ -371,8 +375,13 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             else:
                 continue
 
+            delta += get_new_delta(len(inside_points_l), 85, 95)
+            job.update(progress=int(delta), statusComment="Subiendo detecciones con los puntos de la anotación")
+
         if parameters.clear_results == True:
-            delete_results(parameters, mantener_ids)
+            delete_results(parameters, mantener_ids, job)
+
+        job.update(progress=100, statusComment="Terminado")
         
 
     finally:
