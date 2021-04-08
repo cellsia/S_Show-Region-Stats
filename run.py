@@ -242,6 +242,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         detections = AnnotationCollection()
         detections.project = params.cytomine_id_project
         detections.users = userjobs_ids
+        detections.term = t1
         detections.fetch()
         
         
