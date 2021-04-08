@@ -234,7 +234,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         anot = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1)
         annotations.append(anot)
         annotations.save()
-        AlgoAnnotationTerm(anot.id, t1, t1).save()
+        AlgoAnnotationTerm(id_annotation=anot.id, id_term=t1, id_expected_term=t1).save()
 
         """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
         AnnotationTerm(annotation, term1).save()"""
@@ -255,7 +255,7 @@ def delete_results(params, lista_id):
     
     cyto_job.open_admin_session()
     ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term[0] in lista_id)]
-    print(ids_to_delete)
+    
     with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
         cytomine.open_admin_session()
         [Annotation().delete(id=id_) for id_ in ids_to_delete]
