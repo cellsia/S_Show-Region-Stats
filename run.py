@@ -234,7 +234,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
         annotations.save()
         
-        userjobs = UserJobCollection()
+        """userjobs = UserJobCollection()
         userjobs.fetch_with_filter("project", params.cytomine_id_project)
         userjobs_ids = [userjob.id for userjob in userjobs]
 
@@ -245,21 +245,8 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         detections.fetch()
 
         anot_id = detections[0].id
-        print(anot_id)
-        AlgoAnnotationTerm(id_annotation=anot_id, id_term=t1[0], id_expected_term=t1[0]).save()
+        AlgoAnnotationTerm(id_annotation=anot_id, id_term=t1[0], id_expected_term=t1[0]).save()"""
         
-        
-        """annotations = AnnotationCollection()
-        annotations.project = params.cytomine_id_project
-        annotations.term = term_name
-        annotations.fetch()"""
-
-        """anot_id = annotations[0].id
-        print(anot_id)"""
-        #AnnotationTerm(anot.id, t1).save()
-
-        """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
-        AnnotationTerm(annotation, term1).save()"""
 
     return None
 
