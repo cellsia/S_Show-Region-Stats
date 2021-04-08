@@ -12,7 +12,7 @@ from cytomine.models.software import JobCollection, JobParameterCollection, JobD
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 
-__version__ = "1.2.4"
+__version__ = "1.2.5"
 
 
 def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
