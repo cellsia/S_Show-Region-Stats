@@ -225,7 +225,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         multipoint = _generate_multipoints(points)
         
         
-        term1 = Term(term_name, project.ontology, "F000000").save()
+        term1 = Term(term_name, project.ontology, "#000000").save()
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
         t1 = [t.id for t in termscol if t.name == term_name]
