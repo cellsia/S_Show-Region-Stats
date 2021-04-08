@@ -234,11 +234,11 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
         annotations.save()
         
-
-        annotations = AnnotationCollection()
+        print(t1)
+        """annotations = AnnotationCollection()
         annotations.project = params.cytomine_id_project
         annotations.term = term_name
-        annotations.fetch()
+        annotations.fetch()"""
 
         """anot_id = annotations[0].id
         print(anot_id)"""
