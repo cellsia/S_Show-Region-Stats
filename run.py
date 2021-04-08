@@ -7,7 +7,7 @@ import os
 
 import cytomine
 from cytomine import Cytomine
-from cytomine.models import AnnotationCollection, PropertyCollection, Property, AnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project, UserJobCollection
+from cytomine.models import AnnotationCollection, PropertyCollection, Property, AlgoAnnotationTerm, Annotation, TermCollection, Term, ImageInstance, Project, UserJobCollection
 from cytomine.models.software import JobCollection, JobParameterCollection, JobDataCollection, JobData, Job
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
@@ -234,7 +234,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         anot = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1)
         annotations.append(anot)
         annotations.save()
-        AnnotationTerm(anot.id, t1).save()
+        AlgoAnnotationTerm(anot.id, t1, t1).save()
 
         """annotation = Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1).save()        
         AnnotationTerm(annotation, term1).save()"""
