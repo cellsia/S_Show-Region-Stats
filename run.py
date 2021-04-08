@@ -254,6 +254,7 @@ def delete_results(params, lista_id, job):
 
     users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
     ids = [user.id for user in users]
+    delta = 95
 
     annotations = AnnotationCollection()
     annotations.project = params.cytomine_id_project
@@ -352,6 +353,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
 
         # subimos las anotaciones MultiPoint como detecciones
         job.update(progress=85, statusComment="Subiendo detecciones con los puntos de la anotación")
+        delta = 85
 
         time = datetime.now()
         hour = time.strftime('%H:%M')
