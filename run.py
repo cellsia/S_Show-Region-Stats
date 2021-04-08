@@ -223,8 +223,10 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, date, hour)
 
         multipoint = _generate_multipoints(points)
-        
-        term1 = Term(term_name, project.ontology, "F44E3B").save()
+        t_col = TermCollection().fetch_with_filter("project", project.id)
+        t_col.append(Term(term_name, project.ontology, "F44E3B"))
+        t_col.save()
+        #term1 = Term(term_name, project.ontology, "F44E3B").save()
         termscol = TermCollection().fetch_with_filter("project", project.id)
             
         t1 = [t.id for t in termscol if t.name == term_name]
