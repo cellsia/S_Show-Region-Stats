@@ -235,7 +235,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         annotations.save()
         
         userjobs = UserJobCollection()
-        userjobs.fetch_with_filter(params.cytomine_id_project)
+        userjobs.fetch_with_filter("project", params.cytomine_id_project)
         userjobs_ids = [userjob.id for userjob in userjobs]
         print(userjobs_ids)
 
