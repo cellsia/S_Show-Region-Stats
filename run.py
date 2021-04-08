@@ -244,7 +244,8 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         detections.term = t1
         detections.fetch()
 
-        print(detections[0].id)
+        anot_id = detections[0].id
+        AnnotationTerm(anot_id, t1).save()
         
         
         """annotations = AnnotationCollection()
