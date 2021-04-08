@@ -237,7 +237,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
         annotations = AnnotationCollection()
         annotations.project = params.cytomine_id_project
-        annotations.term = t1
+        annotations.term = term_name
         annotations.fetch()
 
         """anot_id = annotations[0].id
