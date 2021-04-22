@@ -5,7 +5,7 @@
     "image": "glardies/s_show-region-stats",
     "type": "singularity"
   },
-  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [IMAGES_TO_ANALYZE] [CLEAR_RESULTS]",
+  "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [IMAGES_TO_ANALYZE]",
   "inputs": [
     {
       "id": "cytomine_host",
@@ -64,17 +64,6 @@
       "uri":"/api/project/$currentProject$/imageinstance.json",
       "uri-print-attribute":"instanceFilename",
       "uri-sort-attribute":"instanceFilename"
-    },
-    {
-      "id": "clear_results",
-      "value-key": "[@ID]",
-      "command-line-flag": "--@id",
-      "name": "Borrar resultados anteriores",
-      "description": "Si se marca la casilla se borrarán los resultados anteriores para facilitar la visualización",
-      "set-by-server": false,
-      "optional": true,
-      "type": "Boolean"
-      
     }
   ],
 

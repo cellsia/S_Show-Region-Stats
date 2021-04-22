@@ -21,7 +21,6 @@ def get_stats_annotations(params): # funcion para sacar las anotaciones manuales
 
     # filtramos todas las anotaciones manuales del proyecto que tengan el termino "Stats"
     annotations.project = params.cytomine_id_project
-    annotations.term = "Stats"
 
     # si se especifica alguna imagen, filtramos por imagen
     if type(params.images_to_analyze) != "NoneType":
@@ -220,13 +219,17 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     for idx, points in enumerate(detections.values()):
 
-        term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, date, hour)
+        # CAMBIAR AQUÍ LOS NOMBRES DE LOS TÉRMINOS
+
+        #term_name = "INSIDE_POINTS_{}_ANOTACION_{}_FECHA_{}_{}".format(terms[idx],id_, date, hour)
 
         multipoint = _generate_multipoints(points)
         
         if idx == 0:
+            term_name = "NEGATIVOS_{}[{}]".format(hour, id_)
             term1 = Term(term_name, project.ontology, "#68BC00").save()
         else:
+            term_name = "POSITIVOS_{}[{}]".format(hour, id_)
             term1 = Term(term_name, project.ontology, "#F44E3B").save()
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
@@ -235,21 +238,7 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         
         annotations = AnnotationCollection()
         annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
-        annotations.save()
-        
-        """userjobs = UserJobCollection()
-        userjobs.fetch_with_filter("project", params.cytomine_id_project)
-        userjobs_ids = [userjob.id for userjob in userjobs]
-
-        detections = AnnotationCollection()
-        detections.project = params.cytomine_id_project
-        detections.users = userjobs_ids
-        detections.term = t1
-        detections.fetch()
-
-        anot_id = detections[0].id
-        AlgoAnnotationTerm(id_annotation=anot_id, id_term=t1[0], id_expected_term=t1[0]).save()"""
-        
+        annotations.save()        
 
     return None
 
@@ -383,8 +372,8 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
             delta += get_new_delta(len(inside_points_l), 85, 95)
             job.update(progress=int(delta), statusComment="Subiendo detecciones con los puntos de la anotación")
 
-        if parameters.clear_results == True:
-            delete_results(parameters, mantener_ids, job)
+        # borrar resultados siempre
+        delete_results(parameters, mantener_ids, job)
 
         job.update(progress=100, statusComment="Terminado")
         
