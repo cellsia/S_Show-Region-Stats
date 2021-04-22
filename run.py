@@ -226,10 +226,10 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
         multipoint = _generate_multipoints(points)
         
         if idx == 0:
-            term_name = "NEGATIVOS_{}".format( id_)
+            term_name = "NEGATIVOS_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#68BC00").save()
         else:
-            term_name = "POSITIVOS_{}".format( id_)
+            term_name = "POSITIVOS_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#F44E3B").save()
         termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
             
