@@ -220,9 +220,9 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
     for idx, points in enumerate(detections.values()):
 
         # CAMBIAR AQUÍ LOS NOMBRES DE LOS TÉRMINOS
-        print(terms[idx])
-        print(type(terms[idx]))
-        if terms[idx] == 1.0:
+        #print(terms[idx])
+        #print(type(terms[idx]))
+        if terms[idx] == "1.0":
             term_name = "NEGATIVOS_{}_{}".format(id_, hour)
         else:
             term_name = "POSITIVO_{}_{}".format(id_, hour)
