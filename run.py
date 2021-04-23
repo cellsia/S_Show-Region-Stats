@@ -126,9 +126,13 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                 all_points = result["data"]
                 image_info, global_cter = {}, 0
                 for key, value in all_points.items():
+                    if key == "1.0":
+                        name = "NEGATIVOS"
+                    else:
+                        name = "POSITIVOS"
                     count = len(value)
                     global_cter+=count
-                    image_info.update({"conteo_{}_imagen".format(key):count})
+                    image_info.update({"conteo_{}_imagen".format(name):count})
                 image_info.update({"conteo_total_imagen":global_cter})
                 image_info.update({"area_anotacion":annotation.area})
                 image_info.update({"imagen_anotacion":annotation.image})
@@ -142,13 +146,15 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                     ins_p = []
                     [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
-                    print(key)
-                    print(type(key))
+                    if key == "1.0":
+                        name = "NEGATIVOS"
+                    else:
+                        name = "POSITIVOS"
                     particular_info ={
-                        "conteo_{}_anotacion".format(key):cter,
-                        "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
+                        "conteo_{}_anotacion".format(name):cter,
+                        "densidad_{}_anotacion(n/micron²)".format(name):cter/annotation.area
                     }
-                    annotation_dict.update({"info_termino_{}".format(key):particular_info})
+                    annotation_dict.update({"info_{}".format(name):particular_info})
         inside_points_l.append([annotation.id, inside_points]) # guardamos los puntos de dentro para trabajar con ellos posteriormente
         stats.update({annotation.id:annotation_dict}) # atualizamos el diccionario de stats
         
