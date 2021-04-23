@@ -12,7 +12,7 @@ from cytomine.models.software import JobCollection, JobParameterCollection, JobD
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 
-__version__ = "1.2.5"
+__version__ = "1.2.7"
 
 
 def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
@@ -143,6 +143,8 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                     [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     particular_info ={
+                        print(key)
+                        print(type(key))
                         "conteo_{}_anotacion".format(key):cter,
                         "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
                     }
