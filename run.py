@@ -142,9 +142,9 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                     ins_p = []
                     [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
+                    print(key)
+                    print(type(key))
                     particular_info ={
-                        print(key)
-                        print(type(key))
                         "conteo_{}_anotacion".format(key):cter,
                         "densidad_{}_anotacion(n/micron²)".format(key):cter/annotation.area
                     }
