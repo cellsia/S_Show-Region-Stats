@@ -127,9 +127,9 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                 image_info, global_cter = {}, 0
                 for key, value in all_points.items():
                     if key == "1.0":
-                        name = "NEGATIVOS"
-                    else:
                         name = "POSITIVOS"
+                    else:
+                        name = "NEGATIVOS"
                     count = len(value)
                     global_cter+=count
                     image_info.update({"conteo_{}_imagen".format(name):count})
@@ -147,9 +147,9 @@ def get_stats(annotations, results, job): # funcion que calcula las estadística
                     [ins_p.append({"x":p.x, "y":p.y}) for p in ins_pts]
                     inside_points.update({key:ins_p})
                     if key == "1.0":
-                        name = "NEGATIVOS"
-                    else:
                         name = "POSITIVOS"
+                    else:
+                        name = "NEGATIVOS"
                     particular_info ={
                         "conteo_{}_anotacion".format(name):cter,
                         "densidad_{}_anotacion(n/micron²)".format(name):cter/annotation.area
@@ -229,12 +229,13 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
         # CAMBIAR AQUÍ LOS NOMBRES DE LOS TÉRMINOS
         if terms[idx] == "1.0":
+            term_name = "POSITIVOS_{}_{}".format(id_, hour)
+            term1 = Term(term_name, project.ontology, "#68BC00").save()
+            
+        else:
             term_name = "NEGATIVOS_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#F44E3B").save()
             
-        else:
-            term_name = "POSITIVO_{}_{}".format(id_, hour)
-            term1 = Term(term_name, project.ontology, "#68BC00").save()
 
         multipoint = _generate_multipoints(points)
         
