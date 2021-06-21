@@ -12,7 +12,7 @@ from cytomine.models.software import JobCollection, JobParameterCollection, JobD
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 
-__version__ = "1.2.7"
+__version__ = "1.2.9"
 
 
 def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
@@ -216,7 +216,7 @@ def _generate_multipoints(detections: list) -> MultiPoint:
 
     return MultiPoint(points=points)
 
-def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, date, mantener_ids) -> None:
+def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, mantener_ids) -> None:
 
     terms = [key for key,value in detections.items()]
 
@@ -229,11 +229,11 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
         # CAMBIAR AQUÍ LOS NOMBRES DE LOS TÉRMINOS
         if terms[idx] == "1.0":
-            term_name = "POSITIVOS_{}_{}".format(id_, hour)
+            term_name = "POS_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#68BC00").save()
             
         else:
-            term_name = "NEGATIVOS_{}_{}".format(id_, hour)
+            term_name = "NEG_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#F44E3B").save()
             
 
@@ -310,6 +310,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         job.update(progress=5, statusComment="Recogiendo resultados")
         resultados = get_results(parameters, job)
 
+
         if len(resultados) == 0: # terminamos Job si no hay (o no se pueden recuperar) resultados
             job.update(progress=100, status=Job.FAILED, statusComment="No se han podido encontrar resultados")
 
@@ -356,8 +357,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
         delta = 85
 
         time = datetime.now()
-        hour = time.strftime('%H:%M')
-        date = time.strftime('%d-%m-%Y')
+        hour = time.strftime('%H:%M:%S')
 
         mantener_ids = []
         
