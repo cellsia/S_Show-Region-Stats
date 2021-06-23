@@ -21,7 +21,7 @@ from cytomine.models.property import Property, PropertyCollection
 
 
 # script version 
-__version__ = "1.3.1" 
+__version__ = "1.3.2" 
 
 
 
@@ -200,7 +200,7 @@ def get_stats_and_inside_points(annotations, results, job):
     for image_id, image_info in stats.items():
         image_count, image_positives, image_negatives, image_annotated_area = 0, 0, 0, 0
         for annotation_id, annotation_info in stats[image_id]["annotations_info"].items():
-            anot_info =  stats[image_id]["annotation_info"][annotation_id]
+            anot_info =  stats[image_id]["annotations_info"][annotation_id]
             image_count += anot_info["annotation_count"]
             image_positives += anot_info["annotation_positives"]
             image_negatives += anot_info["annotation_negatives"]
