@@ -12,7 +12,7 @@ from cytomine.models.software import JobCollection, JobParameterCollection, JobD
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 
-__version__ = "1.2.9"
+__version__ = "1.3.0"
 
 
 def get_stats_annotations(params): # funcion para sacar las anotaciones manuales "Stats"
@@ -373,7 +373,7 @@ def run(cyto_job, parameters): # funcion principal del script - maneja el flujo 
                     boolean = False
 
             if boolean:
-                _load_multi_class_points(job, image_id, item[1], id_, parameters, hour, date, mantener_ids)
+                _load_multi_class_points(job, image_id, item[1], id_, parameters, hour, mantener_ids)
             else:
                 continue
 
