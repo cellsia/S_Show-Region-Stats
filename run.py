@@ -21,7 +21,7 @@ from cytomine.models.property import Property, PropertyCollection
 
 
 # script version 
-__version__ = "1.3.2" 
+__version__ = "1.3.3" 
 
 
 
@@ -161,14 +161,14 @@ def get_stats_and_inside_points(annotations, results, job):
 
     for annotation in annotations:
        
+        inside_points = {}
         polygon = Polygon(process_polygon(annotation.location))
         
         for result in results: 
             if result["image"] == annotation.image:
 
                 all_points = result["data"]
-                inside_points = {}
-
+                
                 for key, value in all_points.items():
 
                     pts = MultiPoint(process_points(value))
@@ -180,7 +180,6 @@ def get_stats_and_inside_points(annotations, results, job):
                     elif key == "2.0":
                         anot_neg = len(ins_pts)
 
-                inside_points_list.append([annotation.id, inside_points])
                 if not annotation.image in stats.keys():
                     stats[annotation.image] = {
                         "general_info":{},
@@ -194,6 +193,7 @@ def get_stats_and_inside_points(annotations, results, job):
                     "annotation_area":annotation.area
                 }
 
+        inside_points_list.append([annotation.id, inside_points])
         delta += get_new_delta(len(annotations), 20, 60)
         job.update(progress=int(delta), statusComment="calculating stats and getting inside points")
 
