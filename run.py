@@ -1,9 +1,4 @@
 # python modules
-from cytomine.cytomine import Cytomine
-from cytomine.models import annotation
-from cytomine.models.ontology import Term, TermCollection
-from cytomine.models.project import Project
-from cytomine.models.user import UserJobCollection
 from shapely.geometry import Polygon, MultiPoint
 from datetime import datetime
 import logging
@@ -18,10 +13,15 @@ from cytomine.models.annotation import Annotation, AnnotationCollection
 from cytomine.models.software import Job, JobCollection, JobData, JobDataCollection, JobParameterCollection
 from cytomine.models.image import ImageInstance
 from cytomine.models.property import Property, PropertyCollection
+from cytomine.cytomine import Cytomine
+from cytomine.models import annotation
+from cytomine.models.ontology import Term, TermCollection
+from cytomine.models.project import Project
+from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.3.6" 
+__version__ = "1.3.7" 
 
 
 
@@ -173,7 +173,9 @@ def get_stats_and_inside_points(annotations, results, job):
 
                     pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
-                    inside_points.update({key:ins_pts})
+
+                    ins_p = [{"x":p.x, "y":p.y} for p in ins_pts]
+                    inside_points.update({key:ins_p})
 
                     if key == "1.0":
                         anot_pos = len(ins_pts)
@@ -333,16 +335,15 @@ def run (cyto_job, parameters):
         delta = 65
 
         for item in inside_points_list:
-            try:
-                output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
-                f = open(output_path2, "w+")
-                json.dump(item[1], f)
-                f.close()
+            
+            output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
+            f = open(output_path2, "w+")
+            json.dump(item[1], f)
+            f.close()
 
-                job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[1]).save())
-                job_data.upload(output_path)
-            except:
-                continue
+            job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
+            job_data.upload(output_path)
+            
 
             delta += get_new_delta(len(inside_points_list), 65, 75)
             job.update(progress=int(delta), statusComment="uploading 'inside_points.json' files")
