@@ -21,7 +21,7 @@ from cytomine.models.property import Property, PropertyCollection
 
 
 # script version 
-__version__ = "1.3.4" 
+__version__ = "1.3.5" 
 
 
 
@@ -334,9 +334,9 @@ def run (cyto_job, parameters):
 
         for item in inside_points_list:
 
-            output_path = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
-            f = open(output_path, "w+")
-            json.dump(item[1], f.__dict__)
+            output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
+            f = open(output_path2, "w+")
+            json.dump(item[1].__dict__, f)
             f.close()
 
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[1]).save())
