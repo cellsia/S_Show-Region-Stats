@@ -21,7 +21,7 @@ from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.3.7" 
+__version__ = "1.3.8" 
 
 
 
@@ -342,7 +342,7 @@ def run (cyto_job, parameters):
             f.close()
 
             job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
-            job_data.upload(output_path)
+            job_data.upload(output_path2)
             
 
             delta += get_new_delta(len(inside_points_list), 65, 75)
