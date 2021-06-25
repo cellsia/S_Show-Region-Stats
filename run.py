@@ -21,7 +21,7 @@ from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.3.8" 
+__version__ = "1.3.9" 
 
 
 
@@ -170,7 +170,7 @@ def get_stats_and_inside_points(annotations, results, job):
                 all_points = result["data"]
                 
                 for key, value in all_points.items():
-
+                    
                     pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
 
@@ -179,8 +179,10 @@ def get_stats_and_inside_points(annotations, results, job):
 
                     if key == "1.0":
                         anot_pos = len(ins_pts)
+                        image_positives = len(pts)
                     elif key == "2.0":
                         anot_neg = len(ins_pts)
+                        image_negatives = len(pts)
 
                 if not annotation.image in stats.keys():
                     stats[annotation.image] = {
@@ -195,25 +197,23 @@ def get_stats_and_inside_points(annotations, results, job):
                     "annotation_area":annotation.area
                 }
 
+                stats[annotation.image]["general_info"] = {
+                    "image_count":image_positives + image_negatives,
+                    "image_positives":image_positives,
+                    "image_negatives":image_negatives
+                }
+
         inside_points_list.append([annotation.id, inside_points])
         delta += get_new_delta(len(annotations), 20, 60)
         job.update(progress=int(delta), statusComment="calculating stats and getting inside points")
 
     for image_id, image_info in stats.items():
-        image_count, image_positives, image_negatives, image_annotated_area = 0, 0, 0, 0
+        image_annotated_area = 0
         for annotation_id, annotation_info in stats[image_id]["annotations_info"].items():
             anot_info =  stats[image_id]["annotations_info"][annotation_id]
-            image_count += anot_info["annotation_count"]
-            image_positives += anot_info["annotation_positives"]
-            image_negatives += anot_info["annotation_negatives"]
             image_annotated_area += anot_info["annotation_area"]
 
-        stats[image_id]["general_info"] = {
-            "image_count" : image_count,
-            "image_positives": image_positives,
-            "image_negatives": image_negatives,
-            "image_annotated_area" : image_annotated_area
-        }
+        stats[image_id]["general_info"]["image_annotated_area"] = image_annotated_area
 
     return stats, inside_points_list
    
