@@ -228,26 +228,26 @@ def update_properties(stats, job):
 
         for k, v in image_info["general_info"].items():
             current_properties = PropertyCollection(image).fetch()
-            current_property = next((p for p in current_properties if p.key == k), None)
+            current_property = next((p for p in current_properties if p.key == "@"+k), None)
             if current_property:
                 current_property.fetch()
                 current_property.value = v 
                 current_property.update()
             else:
-                Property(image, key=k, value=v).save()
+                Property(image, key="@"+k, value=v).save()
 
         for anot_id, anot_info in image_info["annotations_info"].items():
             annotation = Annotation().fetch(id=int(anot_id))
             for k, v in anot_info.items():
                 current_properties = PropertyCollection(annotation).fetch()
-                current_property = next((p for p in current_properties if p.key == k), None)
+                current_property = next((p for p in current_properties if p.key == "@"+k), None)
                 
                 if current_property:
                     current_property.fetch()
                     current_property.value = v 
                     current_property.update()
                 else:
-                    Property(annotation, key=k, value=v).save()
+                    Property(annotation, key="@"+k, value=v).save()
 
             delta += get_new_delta(len(image_info["annotations_info"].keys()), 75, 85)
         job.update(progress=int(delta), statusComment="updating image & annotations properties")
