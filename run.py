@@ -60,11 +60,11 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
     for idx, points in enumerate(detections.values()):
 
         if terms[idx] == "1.0":
-            term_name = "POS_{}_{}".format(id_, hour)
+            term_name = "@POS_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#68BC00").save()
             
         else:
-            term_name = "NEG_{}_{}".format(id_, hour)
+            term_name = "@NEG_{}_{}".format(id_, hour)
             term1 = Term(term_name, project.ontology, "#F44E3B").save()
             
 
