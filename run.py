@@ -21,8 +21,7 @@ from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.3.9" 
-
+__version__ = "1.4.2" 
 
 
 # --------------------------------------------------------- Support Functions ---------------------------------------------------------
@@ -100,7 +99,9 @@ def get_manual_annotations(params):
     annotations.showTerm = True
     annotations.fetch()
 
-    return annotations
+    filtered_annotations = [anot for anot in annotations if (anot.term == [] or anot.term == "Stats")] # take just the no term annotations
+
+    return filtered_annotations
 
 # STEP 2: get uploaded results
 def get_uploaded_results(params, job):
@@ -194,13 +195,17 @@ def get_stats_and_inside_points(annotations, results, job):
                     "annotation_count":anot_pos + anot_neg,
                     "annotation_positives":anot_pos,
                     "annotation_negatives":anot_neg,
+                    "annotation_positivity":round((anot_pos * 100)/(anot_pos + anot_neg), 2),
+                    "annotation_negativity":round((anot_neg * 100)/(anot_pos + anot_neg), 2),
                     "annotation_area":annotation.area
                 }
 
                 stats[annotation.image]["general_info"] = {
                     "image_count":image_positives + image_negatives,
                     "image_positives":image_positives,
-                    "image_negatives":image_negatives
+                    "image_negatives":image_negatives,
+                    "image_positivity":round((image_positives * 100)/(image_positives + image_negatives), 2),
+                    "image_negativity":round((image_negatives * 100)/(image_positives + image_negatives), 2)
                 }
 
         inside_points_list.append([annotation.id, inside_points])
