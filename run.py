@@ -99,7 +99,7 @@ def get_manual_annotations(params):
     annotations.showTerm = True
     annotations.fetch()
 
-    filtered_annotations = [anot for anot in annotations if (anot.term == [] or anot.term == "Stats")] # take just the no term annotations
+    filtered_annotations = [anot for anot in annotations if (anot.term == [])] # take just the no term annotations
 
     return filtered_annotations
 
