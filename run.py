@@ -154,11 +154,41 @@ def get_uploaded_results(params, job):
     return results
             
 # STEP 3: calculate stats and get inside points
-def get_stats_and_inside_points(annotations, results, job):
+def get_stats_and_inside_points(params, annotations, results, job):
 
     stats = {}
     inside_points_list = []
     delta = 20 
+
+    if type(params.images_to_analyze) != "NoneType" and len(annotations) == 0:
+        
+        try:
+            for result in results:
+                if result["image"] == params.images_to_analyze:
+
+                    all_points = result["data"]
+                    for key, value in all_points.items():
+                        
+                        pts = MultiPoint(process_points(value))
+                        if key == "1.0":
+                            image_positives = len(pts)
+                        elif key == "2.0":
+                            image_negatives = len(pts)
+
+                if not params.images_to_analyze in stats.keys():
+                    stats[params.images_to_analyze] = {
+                        "general_info":{},
+                        "annotations_info":{}
+                    }
+                stats[params.images_to_analyze]["general_info"] = {
+                    "image_count":image_positives + image_negatives,
+                    "image_positives":image_positives,
+                    "image_negatives":image_negatives,
+                    "image_positivity":round((image_positives * 100)/(image_positives + image_negatives), 2),
+                    "image_negativity":round((image_negatives * 100)/(image_positives + image_negatives), 2)
+                }
+        except:
+            pass
 
     for annotation in annotations:
        
@@ -322,7 +352,7 @@ def run (cyto_job, parameters):
 
         # STEP 3: calculate stats and get inside points
         job.update(progress=20, statusComment="calculating stats and getting inside points")
-        stats, inside_points_list = get_stats_and_inside_points(manual_annotations, results, job)
+        stats, inside_points_list = get_stats_and_inside_points(parameters, manual_annotations, results, job)
 
         # STEP 4: upload files with the stats 
         job.update(progress=60, statusComment="uploading 'stats.json' file")
