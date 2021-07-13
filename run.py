@@ -21,7 +21,7 @@ from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.4.2" 
+__version__ = "1.4.4" 
 
 
 # --------------------------------------------------------- Support Functions ---------------------------------------------------------
@@ -180,12 +180,19 @@ def get_stats_and_inside_points(params, annotations, results, job):
                         "general_info":{},
                         "annotations_info":{}
                     }
+
+                try:
+                    ipositivity = round((image_positives * 100)/(image_positives + image_negatives), 2)
+                    inegativity = round((image_negatives * 100)/(image_positives + image_negatives), 2)
+                except:
+                    ipositivity, inegativity = 0, 0
+
                 stats[params.images_to_analyze]["general_info"] = {
                     "image_count":image_positives + image_negatives,
                     "image_positives":image_positives,
                     "image_negatives":image_negatives,
-                    "image_positivity":round((image_positives * 100)/(image_positives + image_negatives), 2),
-                    "image_negativity":round((image_negatives * 100)/(image_positives + image_negatives), 2)
+                    "image_positivity":ipositivity,
+                    "image_negativity":inegativity
                 }
         except:
             pass
@@ -221,21 +228,34 @@ def get_stats_and_inside_points(params, annotations, results, job):
                         "annotations_info":{}
                     }
 
+                try:
+                    apositivity = round((anot_pos * 100)/(anot_pos + anot_neg), 2)
+                    anegativity = round((anot_neg * 100)/(anot_pos + anot_neg), 2)
+                except:
+                    apositivity, anegativity = 0, 0
+
                 stats[annotation.image]["annotations_info"][annotation.id] = {
                     "annotation_count":anot_pos + anot_neg,
                     "annotation_positives":anot_pos,
                     "annotation_negatives":anot_neg,
-                    "annotation_positivity":round((anot_pos * 100)/(anot_pos + anot_neg), 2),
-                    "annotation_negativity":round((anot_neg * 100)/(anot_pos + anot_neg), 2),
+                    "annotation_positivity":apositivity,
+                    "annotation_negativity":anegativity,
                     "annotation_area":annotation.area
                 }
+
+
+                try:
+                    ipositivity = round((image_positives * 100)/(image_positives + image_negatives), 2)
+                    inegativity = round((image_negatives * 100)/(image_positives + image_negatives), 2)
+                except:
+                    ipositivity, inegativity = 0, 0
 
                 stats[annotation.image]["general_info"] = {
                     "image_count":image_positives + image_negatives,
                     "image_positives":image_positives,
                     "image_negatives":image_negatives,
-                    "image_positivity":round((image_positives * 100)/(image_positives + image_negatives), 2),
-                    "image_negativity":round((image_negatives * 100)/(image_positives + image_negatives), 2)
+                    "image_positivity":ipositivity,
+                    "image_negativity":inegativity
                 }
 
         inside_points_list.append([annotation.id, inside_points])
