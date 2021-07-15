@@ -21,7 +21,7 @@ from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.4.4" 
+__version__ = "1.4.5" 
 
 
 # --------------------------------------------------------- Support Functions ---------------------------------------------------------
