@@ -3,6 +3,7 @@ from shapely.geometry import Polygon, MultiPoint
 from datetime import datetime
 import logging
 import shutil
+import time
 import json
 import sys
 import os
@@ -14,14 +15,27 @@ from cytomine.models.software import Job, JobCollection, JobData, JobDataCollect
 from cytomine.models.image import ImageInstance
 from cytomine.models.property import Property, PropertyCollection
 from cytomine.cytomine import Cytomine
-from cytomine.models import annotation
 from cytomine.models.ontology import Term, TermCollection
 from cytomine.models.project import Project
 from cytomine.models.user import UserJobCollection
 
 
 # script version 
-__version__ = "1.4.5" 
+__version__ = "1.4.6" 
+
+
+# constants
+UPLOAD_RESULTS_SCRIPT_NAME = "AI results upload"
+ALLOWED_IMAGE_PARAMS = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
+RESULTS_FILENAME = "detections"
+POS_KEY = "2.0"
+NEG_KEY = "1.0"
+HIDDEN_PROP_PREFIX = "@"
+POS_COLOR = "#68BC00"
+NEG_COLOR = "#F44E3B"
+HIDDEN_TERM_PREFIX = "@"
+
+
 
 
 # --------------------------------------------------------- Support Functions ---------------------------------------------------------
@@ -58,13 +72,13 @@ def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int
 
     for idx, points in enumerate(detections.values()):
 
-        if terms[idx] == "1.0":
-            term_name = "@POS_{}_{}".format(id_, hour)
-            term1 = Term(term_name, project.ontology, "#68BC00").save()
+        if terms[idx] == POS_KEY:
+            term_name = HIDDEN_TERM_PREFIX+"POS_{}_{}".format(id_, hour)
+            term1 = Term(term_name, project.ontology, POS_COLOR).save()
             
-        else:
-            term_name = "@NEG_{}_{}".format(id_, hour)
-            term1 = Term(term_name, project.ontology, "#F44E3B").save()
+        elif terms[idx] == NEG_KEY:
+            term_name = HIDDEN_TERM_PREFIX+"NEG_{}_{}".format(id_, hour)
+            term1 = Term(term_name, project.ontology, NEG_COLOR).save()
             
 
         multipoint = _generate_multipoints(points)
@@ -112,7 +126,9 @@ def get_uploaded_results(params, job):
     jobs = JobCollection()
     jobs.project = params.cytomine_id_project
     jobs.fetch()
-    jobs_ids = [j.id for j in jobs if (j.name[:17] != "Show Region Stats")]
+
+    length = len(UPLOAD_RESULTS_SCRIPT_NAME)
+    jobs_ids = [j.id for j in jobs if (j.name[:length] == UPLOAD_RESULTS_SCRIPT_NAME)]
 
     for job_id in jobs_ids:
 
@@ -124,10 +140,9 @@ def get_uploaded_results(params, job):
             jobdata = JobData().fetch(_job.id)
             filename = jobdata.filename
 
-            allowed_params = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
-            [file_term_equivalences.update({filename:int(param.value)}) for param in jobparamscol if (str(param).split(" : ")[1] in allowed_params) ]
+            [file_term_equivalences.update({filename:int(param.value)}) for param in jobparamscol if (str(param).split(" : ")[1] in ALLOWED_IMAGE_PARAMS)]
 
-            if "detections" in filename:
+            if RESULTS_FILENAME in filename:
                 try:
                     jobdata.download(os.path.join("tmp/", filename))
                 except AttributeError:
@@ -145,12 +160,16 @@ def get_uploaded_results(params, job):
                 image = file_term_equivalences[filename]
                 with open("tmp/"+filename, 'r') as json_file:
                     data = json.load(json_file)
+
+                    for key, value in data.items():
+                        data[key] = MultiPoint(process_points(value))
+
                     json_file.close()
                 results.append({"image":image, "data":data})
             except KeyError:
                 continue
 
-    os.system("cd tmp && rm detections")
+    os.system("cd tmp && rm detections*")
     return results
             
 # STEP 3: calculate stats and get inside points
@@ -167,12 +186,11 @@ def get_stats_and_inside_points(params, annotations, results, job):
                 if result["image"] == params.images_to_analyze:
 
                     all_points = result["data"]
-                    for key, value in all_points.items():
+                    for key, pts in all_points.items():
                         
-                        pts = MultiPoint(process_points(value))
-                        if key == "1.0":
+                        if key == POS_KEY:
                             image_positives = len(pts)
-                        elif key == "2.0":
+                        elif key == NEG_KEY:
                             image_negatives = len(pts)
 
                 if not params.images_to_analyze in stats.keys():
@@ -207,18 +225,17 @@ def get_stats_and_inside_points(params, annotations, results, job):
 
                 all_points = result["data"]
                 
-                for key, value in all_points.items():
+                for key, pts in all_points.items():
                     
-                    pts = MultiPoint(process_points(value))
                     ins_pts = [p for p in pts if polygon.contains(p)]
 
                     ins_p = [{"x":p.x, "y":p.y} for p in ins_pts]
                     inside_points.update({key:ins_p})
 
-                    if key == "1.0":
+                    if key == POS_KEY:
                         anot_pos = len(ins_pts)
                         image_positives = len(pts)
-                    elif key == "2.0":
+                    elif key == NEG_KEY:
                         anot_neg = len(ins_pts)
                         image_negatives = len(pts)
 
@@ -283,26 +300,26 @@ def update_properties(stats, job):
 
         for k, v in image_info["general_info"].items():
             current_properties = PropertyCollection(image).fetch()
-            current_property = next((p for p in current_properties if p.key == "@"+k), None)
+            current_property = next((p for p in current_properties if p.key == HIDDEN_PROP_PREFIX+k), None)
             if current_property:
                 current_property.fetch()
                 current_property.value = v 
                 current_property.update()
             else:
-                Property(image, key="@"+k, value=v).save()
+                Property(image, key=HIDDEN_PROP_PREFIX+k, value=v).save()
 
         for anot_id, anot_info in image_info["annotations_info"].items():
             annotation = Annotation().fetch(id=int(anot_id))
             for k, v in anot_info.items():
                 current_properties = PropertyCollection(annotation).fetch()
-                current_property = next((p for p in current_properties if p.key == "@"+k), None)
+                current_property = next((p for p in current_properties if p.key == HIDDEN_PROP_PREFIX+k), None)
                 
                 if current_property:
                     current_property.fetch()
                     current_property.value = v 
                     current_property.update()
                 else:
-                    Property(annotation, key="@"+k, value=v).save()
+                    Property(annotation, key=HIDDEN_PROP_PREFIX+k, value=v).save()
 
             delta += get_new_delta(len(image_info["annotations_info"].keys()), 75, 85)
         job.update(progress=int(delta), statusComment="updating image & annotations properties")
@@ -455,4 +472,6 @@ if __name__ == '__main__':
     # connect to cytomine instance and create a new job 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
 
+        start_time = time.time()
         run(cyto_job, cyto_job.parameters)
+        logging.info("--- %s seconds ---" % (time.time() - start_time))
