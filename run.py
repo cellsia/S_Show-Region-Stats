@@ -1,45 +1,50 @@
 # python modules
-from shapely.geometry import Polygon, MultiPoint
+from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
 import logging
 import shutil
+import pickle
 import time
 import json
 import sys
 import os
 
-# cytomine modules 
+# cytomine modules
 import cytomine
-from cytomine.models.annotation import Annotation, AnnotationCollection
-from cytomine.models.software import Job, JobCollection, JobData, JobDataCollection, JobParameterCollection
-from cytomine.models.image import ImageInstance
+from cytomine.models.software import JobCollection, Job, JobDataCollection, JobData
+from cytomine.models.annotation import AnnotationCollection, Annotation
 from cytomine.models.property import Property, PropertyCollection
-from cytomine.cytomine import Cytomine
-from cytomine.models.ontology import Term, TermCollection
+from cytomine.models.image import ImageInstance
 from cytomine.models.project import Project
+from cytomine.models.ontology import TermCollection, Term
 from cytomine.models.user import UserJobCollection
+from cytomine.cytomine import Cytomine
 
 
-# script version 
-__version__ = "1.4.6" 
+# version control
+__version__ = "1.4.6"
 
 
 # constants
-UPLOAD_RESULTS_SCRIPT_NAME = "AI results upload"
-ALLOWED_IMAGE_PARAMS = ["cytomine_image", "cytomine_id_image", "cytomine_image_instance"]
-RESULTS_FILENAME = "detections"
-POS_KEY = "2.0"
-NEG_KEY = "1.0"
-HIDDEN_PROP_PREFIX = "@"
-POS_COLOR = "#68BC00"
-NEG_COLOR = "#F44E3B"
+UPLOAD_JOB_NAME = "AI results upload"
+UPLOAD_JOB_IMAGE_PARAMETER_NAME = "cytomine_image"
+UPLOAD_JOB_FILENAME = "detections"
+UPLOAD_JOB_FILEFORMAT = "json"
+POSITIVE_KEY = "2.0"
+NEGATIVE_KEY = "1.0"
+POSITIVE_COLOR = "#68BC00"
+NEGATIVE_COLOR = "#F44E3B"
+HIDDEN_PROPERTY_PREFIX = "@"
 HIDDEN_TERM_PREFIX = "@"
+STATS_FILE_NAME = "stats.json"
+STATS_FILE_TYPE =  "stats"
 
-
-
-
-# --------------------------------------------------------- Support Functions ---------------------------------------------------------
+# ------------------------------- Support functions -------------------------------
 get_new_delta = lambda n, a, b: (b - a) / n
+
+def process_points(points):
+    pts = [[p["x"],p["y"]] for p in points]
+    return pts
 
 def process_polygon(polygon):
     pol = str(polygon)[7:].rstrip("(").lstrip(")").split(",")
@@ -51,60 +56,162 @@ def process_polygon(polygon):
         pol[i] = tuple(pol[i])
     return pol
 
-def process_points(points):
-    pts = [[p["x"],p["y"]] for p in points]
-    return pts
+def update_properties(instance, properties):
+    current_properties = PropertyCollection(instance).fetch()
+    for k, v in properties.items():
+        current_property = next((p for p in current_properties if p.key == HIDDEN_PROPERTY_PREFIX+k), None)
+        if current_property:
+            current_property.fetch()
+            current_property.value = v
+            current_property.update()
+        else:
+            Property(instance, key=HIDDEN_PROPERTY_PREFIX+k, value=v).save()
 
-def _generate_multipoints(detections: list) -> MultiPoint:
-    points = []
-    for detection in detections:
-        points.append((detection['x'], detection['y']))
 
-    return MultiPoint(points=points)
+def _load_multi_class_points(image_id: str, multipoint: MultiPoint, key: str, annotation_id: int, parameters, hour, this_job_ids) -> None:
 
-def _load_multi_class_points(job: Job, image_id: str, detections: dict, id_: int, params, hour, mantener_ids) -> None:
-
-    terms = [key for key,value in detections.items()]
-
-    project = Project().fetch(params.cytomine_id_project)
+    project = Project().fetch(parameters.cytomine_id_project)
     termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
     
-
-    for idx, points in enumerate(detections.values()):
-
-        if terms[idx] == POS_KEY:
-            term_name = HIDDEN_TERM_PREFIX+"POS_{}_{}".format(id_, hour)
-            term1 = Term(term_name, project.ontology, POS_COLOR).save()
-            
-        elif terms[idx] == NEG_KEY:
-            term_name = HIDDEN_TERM_PREFIX+"NEG_{}_{}".format(id_, hour)
-            term1 = Term(term_name, project.ontology, NEG_COLOR).save()
-            
-
-        multipoint = _generate_multipoints(points)
+    if key == POSITIVE_KEY:
+        term_name = HIDDEN_TERM_PREFIX+"POS_{}_{}".format(annotation_id, hour)
+        Term(term_name, project.ontology, POSITIVE_COLOR).save()
+    else:
+        term_name = HIDDEN_TERM_PREFIX+"NEG_{}_{}".format(annotation_id, hour)
+        Term(term_name, project.ontology, NEGATIVE_COLOR).save()
         
-        termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
-            
-        t1 = [t.id for t in termscol if t.name == term_name]
-        mantener_ids.append(t1[0])
-        
-        annotations = AnnotationCollection()
-        annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=params.cytomine_id_project, id_terms=t1))
-        annotations.save()        
+    
+    termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
+    t1 = [t.id for t in termscol if t.name == term_name]
+    this_job_ids.append(t1)
+    
+    annotations = AnnotationCollection()
+    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=t1))
+    annotations.save()        
 
     return None
+    
+
+# ------------------------------- Step functions -------------------------------
+
+# STEP 1: get uploaded results
+def get_uploaded_results(parameters, job):
+
+    # progress bar status
+    delta = 0
+
+    # store the results {image: results}
+    results = {}
+    
+    jobs = JobCollection()
+    jobs.project = parameters.cytomine_id_project
+    jobs.fetch()
+
+    # get just the upload names
+    upload_jobs_ids = [j.id for j in jobs if j.name[:len(UPLOAD_JOB_NAME)] == UPLOAD_JOB_NAME]
+   
+    # filter by image
+    for job_id in upload_jobs_ids:
+    
+            jobparams = Job().fetch(job_id).jobParameters
+            upload_image = [p["value"] for p in jobparams if (p["name"] == UPLOAD_JOB_IMAGE_PARAMETER_NAME)][0]
+            
+            if int(upload_image) == parameters.images_to_analyze:
+                results[int(upload_image)] = job_id
+
+            if not(parameters.images_to_analyze):
+                results[int(upload_image)] = job_id
+            
+
+    for image_id, job_id in results.items():
+
+        jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
+        for data in jobdatacol:
+
+            jobdata = JobData().fetch(data.id)
+            filename = jobdata.filename
+
+            if UPLOAD_JOB_FILENAME in filename:
+                try:
+                    jobdata.download(os.path.join("tmp/", filename))
+                except AttributeError:
+                    continue
+
+            if filename[-4:] == UPLOAD_JOB_FILEFORMAT:
+
+                with open("tmp/"+filename, 'r') as json_file:
+                    data = json.load(json_file)
+                    for key, value in data.items():
+                        data[key] = MultiPoint(process_points(value))
+                    json_file.close()
+
+                results[image_id] = data
+
+        # update progress
+        delta += get_new_delta(len(results), 0, 10)
+        job.update(progress=int(delta), statusComment="getting uploaded results")
+
+    os.system("rm tmp/detections*")
+    return results
 
 
+# STEP 2: calculate image stats
+def calculate_image_stats(results, job):
 
-# --------------------------------------------------------- Steps Functions ---------------------------------------------------------
+    # progress bar status
+    delta = 10
 
-# STEP 1: get manual annotations
+    # store image stats
+    image_stats = {}
+
+    for image_id, data in results.items():
+
+        for key, points in data.items():
+            if key == POSITIVE_KEY:
+                image_positives = len(points)
+            elif key == NEGATIVE_KEY:
+                image_negatives = len(points)
+
+        total = image_negatives + image_positives
+        if total != 0:
+            ipositivity = round((image_positives * 100)/(image_positives + image_negatives), 2)
+            inegativity = round((image_negatives * 100)/(image_positives + image_negatives), 2)
+        else:
+            ipositivity, inegativity = 0, 0
+
+
+        image_stats[image_id] = {
+            "general_info":{},
+            "annotations_info":{}
+        }
+
+        image_stats[image_id]["general_info"] = {
+            "image_count":image_positives + image_negatives,
+            "image_positives":image_positives,
+            "image_negatives":image_negatives,
+            "image_positivity":ipositivity,
+            "image_negativity":inegativity, 
+            "image_annotated_area":0
+        }
+
+        # ----- upload image properties -----
+        image = ImageInstance().fetch(id=image_id)
+        update_properties(image, image_stats[image_id]["general_info"])
+
+        # update progress
+        delta += get_new_delta(len(results), 10, 20)
+        job.update(progress=int(delta), statusComment="getting uploaded results")
+
+    return image_stats
+
+
+# STEP 3: get manual annotations
 def get_manual_annotations(params):
 
     annotations = AnnotationCollection()
     annotations.project = params.cytomine_id_project
 
-    if type(params.images_to_analyze) != "NoneType":
+    if params.images_to_analyze:
         annotations.image = params.images_to_analyze
 
     annotations.showWKT = True
@@ -117,361 +224,201 @@ def get_manual_annotations(params):
 
     return filtered_annotations
 
-# STEP 2: get uploaded results
-def get_uploaded_results(params, job):
+        
+# STEP 4: process manual annotations  
+def process_manual_annotations(manual_annotations, results, image_stats, parameters, job):
 
-    file_term_equivalences = {}
-    delta = 5
+    # progress bar status
+    delta = 30
 
-    jobs = JobCollection()
-    jobs.project = params.cytomine_id_project
-    jobs.fetch()
+    # store this job ids
+    this_job_ids = []
 
-    length = len(UPLOAD_RESULTS_SCRIPT_NAME)
-    jobs_ids = [j.id for j in jobs if (j.name[:length] == UPLOAD_RESULTS_SCRIPT_NAME)]
+    # store annotated_area
+    annotated_area = {}
 
-    for job_id in jobs_ids:
-
-        jobparamscol = JobParameterCollection().fetch_with_filter(key="job", value=job_id)
-        jobdatacol = JobDataCollection().fetch_with_filter(key="job", value=job_id)
-
-        for _job in jobdatacol:
-
-            jobdata = JobData().fetch(_job.id)
-            filename = jobdata.filename
-
-            [file_term_equivalences.update({filename:int(param.value)}) for param in jobparamscol if (str(param).split(" : ")[1] in ALLOWED_IMAGE_PARAMS)]
-
-            if RESULTS_FILENAME in filename:
-                try:
-                    jobdata.download(os.path.join("tmp/", filename))
-                except AttributeError:
-                    continue
-
-        delta += get_new_delta(len(jobs_ids), 5, 20)
-        job.update(progress=int(delta), statusComment="getting uploaded results")
-
-    results = []
-    temp_files =  os.listdir("tmp")
-    for i in range(0, len(temp_files)):
-        if temp_files[i][-4:] == "json":
-            filename = temp_files[i]
-            try:
-                image = file_term_equivalences[filename]
-                with open("tmp/"+filename, 'r') as json_file:
-                    data = json.load(json_file)
-
-                    for key, value in data.items():
-                        data[key] = MultiPoint(process_points(value))
-
-                    json_file.close()
-                results.append({"image":image, "data":data})
-            except KeyError:
-                continue
-
-    os.system("cd tmp && rm detections*")
-    return results
-            
-# STEP 3: calculate stats and get inside points
-def get_stats_and_inside_points(params, annotations, results, job):
-
-    stats = {}
-    inside_points_list = []
-    delta = 20 
-
-    if type(params.images_to_analyze) != "NoneType" and len(annotations) == 0:
+    for annotation in manual_annotations:
         
         try:
-            for result in results:
-                if result["image"] == params.images_to_analyze:
 
-                    all_points = result["data"]
-                    for key, pts in all_points.items():
-                        
-                        if key == POS_KEY:
-                            image_positives = len(pts)
-                        elif key == NEG_KEY:
-                            image_negatives = len(pts)
+            # ----- get anot stats -----
+            polygon = Polygon(process_polygon(annotation.location)) # annotation geometry
 
-                if not params.images_to_analyze in stats.keys():
-                    stats[params.images_to_analyze] = {
-                        "general_info":{},
-                        "annotations_info":{}
-                    }
+            data = results[annotation.image]
+
+            # store inside points
+            ins_points = {
+                POSITIVE_KEY:None,
+                NEGATIVE_KEY:None
+            }
+            
+            for key, points in data.items():
+                inside_points = [p for p in points if polygon.contains(p)] # inside points
+
+                if key == POSITIVE_KEY:
+                    anot_pos = len(inside_points)
+                elif key == NEGATIVE_KEY:
+                    anot_neg = len(inside_points)
 
                 try:
-                    ipositivity = round((image_positives * 100)/(image_positives + image_negatives), 2)
-                    inegativity = round((image_negatives * 100)/(image_positives + image_negatives), 2)
-                except:
-                    ipositivity, inegativity = 0, 0
 
-                stats[params.images_to_analyze]["general_info"] = {
-                    "image_count":image_positives + image_negatives,
-                    "image_positives":image_positives,
-                    "image_negatives":image_negatives,
-                    "image_positivity":ipositivity,
-                    "image_negativity":inegativity
-                }
-        except:
-            pass
-
-    for annotation in annotations:
-       
-        inside_points = {}
-        polygon = Polygon(process_polygon(annotation.location))
-        
-        for result in results: 
-            if result["image"] == annotation.image:
-
-                all_points = result["data"]
+                    # ----- upload inside_points layers ------
+                    inside_multipoint = MultiPoint(inside_points)
+                    time = datetime.now()
+                    hour = time.strftime('%H:%M:%S')
+                    _load_multi_class_points(annotation.image, inside_multipoint, key, annotation.id, parameters, hour, this_job_ids)
                 
-                for key, pts in all_points.items():
+                    ins_points[key] = inside_multipoint
                     
-                    ins_pts = [p for p in pts if polygon.contains(p)]
-
-                    ins_p = [{"x":p.x, "y":p.y} for p in ins_pts]
-                    inside_points.update({key:ins_p})
-
-                    if key == POS_KEY:
-                        anot_pos = len(ins_pts)
-                        image_positives = len(pts)
-                    elif key == NEG_KEY:
-                        anot_neg = len(ins_pts)
-                        image_negatives = len(pts)
-
-                if not annotation.image in stats.keys():
-                    stats[annotation.image] = {
-                        "general_info":{},
-                        "annotations_info":{}
-                    }
-
-                try:
-                    apositivity = round((anot_pos * 100)/(anot_pos + anot_neg), 2)
-                    anegativity = round((anot_neg * 100)/(anot_pos + anot_neg), 2)
                 except:
-                    apositivity, anegativity = 0, 0
+                    pass
 
-                stats[annotation.image]["annotations_info"][annotation.id] = {
-                    "annotation_count":anot_pos + anot_neg,
-                    "annotation_positives":anot_pos,
-                    "annotation_negatives":anot_neg,
-                    "annotation_positivity":apositivity,
-                    "annotation_negativity":anegativity,
-                    "annotation_area":annotation.area
-                }
+            # ----- upload inside points files -----
+            filename = "tmp/inside_points_{}".format(annotation.id)
+            with open(filename, "wb") as multipoint_file:
+                pickle.dump(ins_points, multipoint_file, pickle.HIGHEST_PROTOCOL)
+                multipoint_file.close()
 
+            job_data = JobData(job.id, "inside_points", filename.split("/")[-1]).save()
+            job_data.upload(filename)
+            os.system("rm "+filename)
 
-                try:
-                    ipositivity = round((image_positives * 100)/(image_positives + image_negatives), 2)
-                    inegativity = round((image_negatives * 100)/(image_positives + image_negatives), 2)
-                except:
-                    ipositivity, inegativity = 0, 0
-
-                stats[annotation.image]["general_info"] = {
-                    "image_count":image_positives + image_negatives,
-                    "image_positives":image_positives,
-                    "image_negatives":image_negatives,
-                    "image_positivity":ipositivity,
-                    "image_negativity":inegativity
-                }
-
-        inside_points_list.append([annotation.id, inside_points])
-        delta += get_new_delta(len(annotations), 20, 60)
-        job.update(progress=int(delta), statusComment="calculating stats and getting inside points")
-
-    for image_id, image_info in stats.items():
-        image_annotated_area = 0
-        for annotation_id, annotation_info in stats[image_id]["annotations_info"].items():
-            anot_info =  stats[image_id]["annotations_info"][annotation_id]
-            image_annotated_area += anot_info["annotation_area"]
-
-        stats[image_id]["general_info"]["image_annotated_area"] = image_annotated_area
-
-    return stats, inside_points_list
-   
-# STEP 6: update image & annotations properties
-def update_properties(stats, job): 
-
-    delta = 75
-
-    for image_id, image_info in stats.items():
-
-        image = ImageInstance().fetch(id=int(image_id))
-
-        for k, v in image_info["general_info"].items():
-            current_properties = PropertyCollection(image).fetch()
-            current_property = next((p for p in current_properties if p.key == HIDDEN_PROP_PREFIX+k), None)
-            if current_property:
-                current_property.fetch()
-                current_property.value = v 
-                current_property.update()
+            # ----- get stats -----
+            total = anot_pos + anot_neg 
+            if total != 0:
+                apositivity = round((anot_pos * 100)/(anot_pos + anot_neg), 2)
+                anegativity = round((anot_neg * 100)/(anot_pos + anot_neg), 2)
             else:
-                Property(image, key=HIDDEN_PROP_PREFIX+k, value=v).save()
+                apositivity, anegativity = 0, 0
 
-        for anot_id, anot_info in image_info["annotations_info"].items():
-            annotation = Annotation().fetch(id=int(anot_id))
-            for k, v in anot_info.items():
-                current_properties = PropertyCollection(annotation).fetch()
-                current_property = next((p for p in current_properties if p.key == HIDDEN_PROP_PREFIX+k), None)
-                
-                if current_property:
-                    current_property.fetch()
-                    current_property.value = v 
-                    current_property.update()
-                else:
-                    Property(annotation, key=HIDDEN_PROP_PREFIX+k, value=v).save()
+            image_stats[annotation.image]["annotations_info"][annotation.id] = {
+                "annotation_count":anot_pos + anot_neg,
+                "annotation_positives":anot_pos,
+                "annotation_negatives":anot_neg,
+                "annotation_positivity":apositivity,
+                "annotation_negativity":anegativity,
+                "annotation_area":round(annotation.area, 2)
+            }
+            
 
-            delta += get_new_delta(len(image_info["annotations_info"].keys()), 75, 85)
-        job.update(progress=int(delta), statusComment="updating image & annotations properties")
+            image_stats[annotation.image]["general_info"]["image_annotated_area"] += round(annotation.area)
+            
+            # ---- upload/update annotation properties -----
+            update_properties(annotation, image_stats[annotation.image]["annotations_info"][annotation.id])          
 
-    return None
-                
- # STEP 8: remove previous results
-def delete_results(params, lista_id, job):
+            # update progress
+            delta += get_new_delta(len(results), 30, 90)
+            job.update(progress=int(delta), statusComment="processing manual anotations")
 
-    users = UserJobCollection().fetch_with_filter("project", params.cytomine_id_project)
+        except:
+            continue
+
+    # ----- upload stats file -----
+    f = open("tmp/"+STATS_FILE_NAME, "w+")
+    json.dump(image_stats, f)
+    f.close()
+
+    job_data = JobData(job.id, STATS_FILE_TYPE, STATS_FILE_NAME).save()
+    job_data.upload("tmp/"+STATS_FILE_NAME)
+    os.system("rm tmp/"+STATS_FILE_NAME)
+
+    return this_job_ids
+
+
+# STEP 5: delete old results
+def delete_results(parameters, this_job_ids, job):
+
+    users = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
     ids = [user.id for user in users]
-    delta = 95
+    delta = 90
 
     annotations = AnnotationCollection()
-    annotations.project = params.cytomine_id_project
+    annotations.project = parameters.cytomine_id_project
     annotations.users = ids
     annotations.showTerm = True
     annotations.fetch()
     
     
     cyto_job.open_admin_session()
-    ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term[0] in lista_id)]
+    ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term in this_job_ids)]
     
-    with Cytomine(host=params.cytomine_host, public_key=params.cytomine_public_key, private_key=params.cytomine_private_key, verbose=logging.INFO) as cytomine:
+    with Cytomine(host=parameters.cytomine_host, public_key=parameters.cytomine_public_key, private_key=parameters.cytomine_private_key, verbose=logging.INFO) as cytomine:
         cytomine.open_admin_session()
         [Annotation().delete(id=id_) for id_ in ids_to_delete]
         
         
-        project = Project().fetch(params.cytomine_id_project)
+        project = Project().fetch(parameters.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
-        ids_to_delete = [t.id for t in termscol if (t.name != "Stats" and not (t.id in lista_id))]
+        ids_to_delete = [t.id for t in termscol if (t.name != "Stats" and not (t.id in this_job_ids))]
 
         for id_ in ids_to_delete:
             Term().delete(id=id_)
-            delta += get_new_delta(len(ids_to_delete), 95, 100)
+            delta += get_new_delta(len(ids_to_delete), 90, 100)
             job.update(progress=int(delta), statusComment="Removing previous results")
 
     return None
 
 
+# ------------------------------- Main function -------------------------------
+def run(job, parameters):
 
-# --------------------------------------------------------- Main Function ---------------------------------------------------------
-def run (cyto_job, parameters):
-
-    # version control and input parameters
+    # show version control and parameters
     logging.info("----- test software v%s -----", __version__)
-    logging.info("Entering run(cyto_job=%s, parameters=%s)", cyto_job, parameters)
+    logging.info("Entering run(cyto_job=%s, parameters=%s)", job, parameters)
 
-    # get the job (will be used later)
-    job = cyto_job.job
-
-    # create working folder 
+    # create working directory
     working_path = os.path.join("tmp", str(job.id))
     if not os.path.exists(working_path):
         logging.info("Creating working directory: %s", working_path)
         os.makedirs(working_path)
 
-    try: 
 
-        # STEP 1: get manual annotations
-        job.update(progress=0, statusComment="Getting manual annotations")
+    try:
+
+        # STEP 1: get uploaded results
+        job.update(progress=0, statusComment="getting uploaded results")
+        results = get_uploaded_results(parameters, job)
+        
+        if results == {}:
+            job.update(progress=100, status=job.FAILED, statusComment="no results uploaded!") 
+            sys.exit()
+
+        # STEP 2: calculate image stats
+        job.update(progress=10, statusComment="calculating image stats")
+        image_stats = calculate_image_stats(results, job)
+
+        # STEP 3: get manual annotations
+        job.update(progress=20, statusComment="Getting manual annotations")
         manual_annotations = get_manual_annotations(parameters)
 
-        # STEP 2: get uploaded results
-        job.update(progress=5, statusComment="getting uploaded results")
-        results = get_uploaded_results(parameters, job)
+        if manual_annotations == []:
+            job.update(progress=100, status=job.TERMINATED, statusComment="no manual annotations!") 
+            sys.exit()
 
-        # STEP 3: calculate stats and get inside points
-        job.update(progress=20, statusComment="calculating stats and getting inside points")
-        stats, inside_points_list = get_stats_and_inside_points(parameters, manual_annotations, results, job)
+        # STEP 4: process manual annotations  
+        job.update(progress=30, statusComment="processing manual anotations")
+        this_job_ids = process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
 
-        # STEP 4: upload files with the stats 
-        job.update(progress=60, statusComment="uploading 'stats.json' file")
-
-        output_path = os.path.join(working_path, "stats.json")
-        f = open(output_path, "w+")
-        json.dump(stats, f)
-        f.close()
-
-        job_data = JobData(job.id, "stats", "stats.json").save()
-        job_data.upload(output_path)
-
-        # STEP 5: upload files with the inside points
-        job.update(progress=65, statusComment="uploading 'inside_points.json' files")
-        delta = 65
-
-        for item in inside_points_list:
-            
-            output_path2 = os.path.join(working_path, "inside_points_{}.json".format(item[0]))
-            f = open(output_path2, "w+")
-            json.dump(item[1], f)
-            f.close()
-
-            job_data = JobData(job.id, "detections", "inside_points_{}.json".format(item[0])).save()
-            job_data.upload(output_path2)
-            
-
-            delta += get_new_delta(len(inside_points_list), 65, 75)
-            job.update(progress=int(delta), statusComment="uploading 'inside_points.json' files")
-
-        # STEP 6: update image & annotations properties
-        job.update(progress=75, statusComment="updating image & annotations properties")
-        update_properties(stats, job)
-
-        # STEP 7: upload detections layers
-        job.update(progress=75, statusComment="uploadind detections layers")
-        delta = 85
-
-        time = datetime.now()
-        hour = time.strftime('%H:%M:%S')
-        keep_anot_ids = []
-
-        for item in inside_points_list:
-            anot_id = int(item[0])
-            annotation = Annotation().fetch(id=anot_id)
-            image_id = annotation.image
-            detections = item[1]
-
-            boolean = True
-            for key, value in detections.items():
-                if len(value) == 0:
-                    boolean = False
-            
-            if boolean:
-                _load_multi_class_points(job, image_id, item[1], anot_id, parameters, hour, keep_anot_ids)
-            else:
-                continue
-            
-            delta += get_new_delta(len(inside_points_list), 85, 95)
-            job.update(progress=int(delta), statusComment="uploadind detections layers")
-
-
-        # STEP 8: remove previous results
-        delete_results(parameters, keep_anot_ids, job)
-        job.update(progress=100, statusComment="Job Done")
+        # STEP 5: delete old results
+        delete_results(parameters, this_job_ids, job)
 
     finally:
 
-        # delete tmp files before closing the connection
+        # delete tmp/ files
         logging.info("Deleting folder %s", working_path)
         shutil.rmtree(working_path, ignore_errors=True)
-        logging.debug("Leaving run()")
+        logging.debug("Leaving the script...")
 
     return None
+
 
 if __name__ == '__main__':
 
     logging.debug("Command: %s", sys.argv)
 
-    # connect to cytomine instance and create a new job 
     with cytomine.CytomineJob.from_cli(sys.argv) as cyto_job:
 
+        # log time
         start_time = time.time()
-        run(cyto_job, cyto_job.parameters)
+        run(cyto_job.job, cyto_job.parameters)
         logging.info("--- %s seconds ---" % (time.time() - start_time))
