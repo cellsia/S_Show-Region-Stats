@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.4.7"
+__version__ = "1.4.8"
 
 
 # constants
@@ -307,7 +307,7 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
             update_properties(annotation, image_stats[annotation.image]["annotations_info"][annotation.id])          
 
             # update progress
-            delta += get_new_delta(len(results), 30, 90)
+            delta += get_new_delta(len(manual_annotations), 30, 90)
             job.update(progress=int(delta), statusComment="processing manual anotations")
 
         except:
