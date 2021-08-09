@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.4.8"
+__version__ = "1.4.9"
 
 
 # constants
@@ -349,7 +349,7 @@ def delete_results(parameters, this_job_ids, job):
         
         project = Project().fetch(parameters.cytomine_id_project)
         termscol = TermCollection().fetch_with_filter("project", project.id)
-        ids_to_delete = [t.id for t in termscol if (t.name != "Stats" and not (t.id in this_job_ids))]
+        ids_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
 
         for id_ in ids_to_delete:
             Term().delete(id=id_)
@@ -392,15 +392,26 @@ def run(job, parameters):
         manual_annotations = get_manual_annotations(parameters)
 
         if manual_annotations == []:
+
+            # ----- upload stats file -----
+            f = open("tmp/"+STATS_FILE_NAME, "w+")
+            json.dump(image_stats, f)
+            f.close()
+
+            job_data = JobData(job.id, STATS_FILE_TYPE, STATS_FILE_NAME).save()
+            job_data.upload("tmp/"+STATS_FILE_NAME)
+            os.system("rm tmp/"+STATS_FILE_NAME)
+
             job.update(progress=100, status=job.TERMINATED, statusComment="no manual annotations!") 
-            sys.exit()
 
-        # STEP 4: process manual annotations  
-        job.update(progress=30, statusComment="processing manual anotations")
-        this_job_ids = process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
+        else:    
 
-        # STEP 5: delete old results
-        delete_results(parameters, this_job_ids, job)
+            # STEP 4: process manual annotations  
+            job.update(progress=30, statusComment="processing manual anotations")
+            this_job_ids = process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
+
+            # STEP 5: delete old results
+            delete_results(parameters, this_job_ids, job)
 
     finally:
 
