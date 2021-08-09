@@ -1,6 +1,6 @@
 # Show Region Stats
 
-Script de Cytomine. 
+Script de Cytomine para conteo de estadístidas en una región definida por una anotación. 
 
 
 Desarrollado por <a href="https://github.com/GonzaloLardies">@GonzaloLardies</a> (gon.lardies.guillen@gmail.com)
