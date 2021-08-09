@@ -29,6 +29,8 @@ Parámetros de configuración:
 
 - Los archivos subidos por el algoritmo con los puntos interiores de cada anotación están en formato MultiPoint y comprimidos con el paquete 'pickle' (con el objetivo de que ocupen el menor espacio posible). Si se quiere trabajar con ellos en el futuro se puede simplemente cargar el Multipoint con el siguiente código:
 ```python
+import pickle
+
 # Load MultiPoint from disc
 with open('./my_multipoint', "rb") as multi_file:
     loaded_multipoint = pickle.load(multi_file)
