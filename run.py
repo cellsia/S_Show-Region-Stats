@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.5.2"
+__version__ = "1.5.3"
 
 
 # constants
@@ -339,21 +339,37 @@ def delete_results(parameters, this_job_ids, job):
     annotations.fetch()
     
     
-    cyto_job.open_admin_session()
-    ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term in this_job_ids)]
+    if parameters.images_to_analyze:
+
+        anot_ids_to_delete, anot_terms_to_delete = [], []
+
+        for annotation in annotations:
+            if (not (annotation.term in this_job_ids) and annotation.image == parameters.images_to_analyze):
+
+                anot_ids_to_delete.append(annotation.id)
+                anot_terms = annotation.term
+
+                [anot_terms_to_delete.append(t) for t in anot_terms];
+
+    else:
+        anot_ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term in this_job_ids)]
+        anot_terms_to_delete = []
     
     with Cytomine(host=parameters.cytomine_host, public_key=parameters.cytomine_public_key, private_key=parameters.cytomine_private_key, verbose=logging.INFO) as cytomine:
         cytomine.open_admin_session()
-        [Annotation().delete(id=id_) for id_ in ids_to_delete]
+        [Annotation().delete(id=id_) for id_ in anot_ids_to_delete]
         
+        if parameters.images_to_analyze:
+            terms_to_delete = anot_terms_to_delete
+        else:
+            project = Project().fetch(parameters.cytomine_id_project)
+            termscol = TermCollection().fetch_with_filter("project", project.id)
+            terms_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
         
-        project = Project().fetch(parameters.cytomine_id_project)
-        termscol = TermCollection().fetch_with_filter("project", project.id)
-        ids_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
 
-        for id_ in ids_to_delete:
+        for id_ in terms_to_delete:
             Term().delete(id=id_)
-            delta += get_new_delta(len(ids_to_delete), 90, 100)
+            delta += get_new_delta(len(terms_to_delete), 90, 100)
             job.update(progress=int(delta), statusComment="Removing previous results")
 
     return None
