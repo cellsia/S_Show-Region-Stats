@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 
 
 # constants
@@ -402,7 +402,8 @@ def run(job, parameters):
             job_data.upload("tmp/"+STATS_FILE_NAME)
             os.system("rm tmp/"+STATS_FILE_NAME)
 
-            job.update(progress=100, status=job.TERMINATED, statusComment="no manual annotations!") 
+            this_job_ids = []
+            job.update(progress=90, status=job.UPDATE, statusComment="no manual annotations!") 
 
         else:    
 
@@ -410,8 +411,9 @@ def run(job, parameters):
             job.update(progress=30, statusComment="processing manual anotations")
             this_job_ids = process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
 
-            # STEP 5: delete old results
-            delete_results(parameters, this_job_ids, job)
+
+        # STEP 5: delete old results
+        delete_results(parameters, this_job_ids, job)
 
     finally:
 
