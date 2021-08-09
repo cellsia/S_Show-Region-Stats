@@ -1,6 +1,6 @@
 # Show Region Stats
 
-Script de Cytomine. 
+Script de Cytomine para conteo de estadístidas en una región definida por una anotación. 
 
 
 Desarrollado por <a href="https://github.com/GonzaloLardies">@GonzaloLardies</a> (gon.lardies.guillen@gmail.com)
@@ -21,11 +21,19 @@ Parámetros de configuración:
 - **STATS_FILE_NAME** --> Nombre de archivo de resultados
 - **STATS_FILE_TYPE**  -->  Tipo de archivo de resultados
 
+### Diagrama de flujo del algoritmo
+
+![Image](https://i.ibb.co/nPptX8q/diagrama-flujo-script.jpg)
+
 ### Consideraciones para desarrollos futuros
 
 - Los archivos subidos por el algoritmo con los puntos interiores de cada anotación están en formato MultiPoint y comprimidos con el paquete 'pickle' (con el objetivo de que ocupen el menor espacio posible). Si se quiere trabajar con ellos en el futuro se puede simplemente cargar el Multipoint con el siguiente código:
 ```python
+import pickle
+
 # Load MultiPoint from disc
 with open('./my_multipoint', "rb") as multi_file:
     loaded_multipoint = pickle.load(multi_file)
 ```
+
+- El algoritmo se ha intentado optimizar al máximo utilizando los paquetes de 'numpy' y 'numba', pero no se han obtenido unos resultados satisfactorios. El mayor tiempo de cómputo tiene lugar al calcular qué puntos se encuentran dentro de una anotación. Para ello se utiliza el paquete 'shapely' que ofrece el mayor rendimiento. 
