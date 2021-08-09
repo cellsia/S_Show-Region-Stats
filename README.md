@@ -35,3 +35,5 @@ import pickle
 with open('./my_multipoint', "rb") as multi_file:
     loaded_multipoint = pickle.load(multi_file)
 ```
+
+- El algoritmo se ha intentado optimizar al máximo utilizando los paquetes de 'numpy' y 'numba', pero no se han obtenido unos resultados satisfactorios. El mayor tiempo de cómputo tiene lugar al calcular qué puntos se encuentran dentro de una anotación. Para ello se utiliza el paquete 'shapely' que ofrece el mayor rendimiento. 
