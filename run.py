@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.5.1"
+__version__ = "1.5.2"
 
 
 # constants
@@ -403,7 +403,7 @@ def run(job, parameters):
             os.system("rm tmp/"+STATS_FILE_NAME)
 
             this_job_ids = []
-            job.update(progress=90, status=job.UPDATE, statusComment="no manual annotations!") 
+            job.update(progress=90, statusComment="no manual annotations!") 
 
         else:    
 
