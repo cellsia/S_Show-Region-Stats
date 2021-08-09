@@ -348,7 +348,6 @@ def delete_results(parameters, this_job_ids, job):
 
                 anot_ids_to_delete.append(annotation.id)
                 anot_terms = annotation.term
-
                 [anot_terms_to_delete.append(t) for t in anot_terms];
 
     else:
