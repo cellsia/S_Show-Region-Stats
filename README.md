@@ -21,7 +21,7 @@ Parámetros de configuración:
 - **STATS_FILE_NAME** --> Nombre de archivo de resultados
 - **STATS_FILE_TYPE**  -->  Tipo de archivo de resultados
 
-### Diagrama de flujo algoritmo
+### Diagrama de flujo del algoritmo
 
 ![Image](https://i.ibb.co/nPptX8q/diagrama-flujo-script.jpg)
 
