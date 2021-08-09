@@ -21,6 +21,10 @@ Parámetros de configuración:
 - **STATS_FILE_NAME** --> Nombre de archivo de resultados
 - **STATS_FILE_TYPE**  -->  Tipo de archivo de resultados
 
+### Diagrama de flujo algoritmo
+
+![Image](https://i.ibb.co/nPptX8q/diagrama-flujo-script.jpg)
+
 ### Consideraciones para desarrollos futuros
 
 - Los archivos subidos por el algoritmo con los puntos interiores de cada anotación están en formato MultiPoint y comprimidos con el paquete 'pickle' (con el objetivo de que ocupen el menor espacio posible). Si se quiere trabajar con ellos en el futuro se puede simplemente cargar el Multipoint con el siguiente código:
