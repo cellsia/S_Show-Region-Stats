@@ -22,7 +22,7 @@ from cytomine.cytomine import Cytomine
 
 
 # version control
-__version__ = "1.5.3"
+__version__ = "1.5.4"
 
 
 # constants
@@ -30,8 +30,8 @@ UPLOAD_JOB_NAME = "AI results upload"
 UPLOAD_JOB_IMAGE_PARAMETER_NAME = "cytomine_image"
 UPLOAD_JOB_FILENAME = "detections"
 UPLOAD_JOB_FILEFORMAT = "json"
-POSITIVE_KEY = "1.0"
-NEGATIVE_KEY = "2.0"
+POSITIVE_KEY = "2.0"
+NEGATIVE_KEY = "1.0"
 POSITIVE_COLOR = "#68BC00"
 NEGATIVE_COLOR = "#F44E3B"
 HIDDEN_PROPERTY_PREFIX = "@"
@@ -365,7 +365,6 @@ def delete_results(parameters, this_job_ids, job):
             termscol = TermCollection().fetch_with_filter("project", project.id)
             terms_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
         
-
         for id_ in terms_to_delete:
             Term().delete(id=id_)
             delta += get_new_delta(len(terms_to_delete), 90, 100)
