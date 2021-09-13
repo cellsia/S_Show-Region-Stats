@@ -417,7 +417,7 @@ def run(job, parameters):
             os.system("rm tmp/"+STATS_FILE_NAME)
 
             this_job_ids = []
-            job.update(progress=90, statusComment="no manual annotations!") 
+            job.update(progress=100, statusComment="no manual annotations!") 
 
         else:    
 
