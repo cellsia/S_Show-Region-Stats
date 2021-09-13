@@ -191,7 +191,12 @@ def calculate_image_stats(results, job):
             "image_negatives":image_negatives,
             "image_positivity":ipositivity,
             "image_negativity":inegativity, 
-            "image_annotated_area":0
+            "image_annotated_area":0,
+            "total_annotations_count":0,
+            "total_annotations_positives":0,
+            "total_annotations_negatives":0,
+            "total_annotations_positivity":0,
+            "total_annotations_negativity":0
         }
 
         # ----- upload image properties -----
@@ -301,7 +306,15 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
             }
             
 
-            image_stats[annotation.image]["general_info"]["image_annotated_area"] += round(annotation.area)
+            image_stats[annotation.image]["general_info"]["image_annotated_area"] += round(annotation.area, 2)
+            image_stats[annotation.image]["general_info"]["total_annotations_count"] += (anot_pos + anot_neg)
+            image_stats[annotation.image]["general_info"]["total_annotations_positives"] += anot_pos
+            image_stats[annotation.image]["general_info"]["total_annotations_negatives"] += anot_neg
+            
+            if image_stats[annotation.image]["general_info"]["total_annotations_count"] != 0:
+                actual_stats = image_stats[annotation.image]["general_info"]
+                image_stats[annotation.image]["general_info"]["total_annotations_positivity"] = round((actual_stats["total_annotations_positives"] * 100) / actual_stats["total_annotations_count"], 2)
+                image_stats[annotation.image]["general_info"]["total_annotations_negativity"] = round((actual_stats["total_annotations_negatives"] * 100) / actual_stats["total_annotations_count"], 2)
             
             # ---- upload/update annotation properties -----
             update_properties(annotation, image_stats[annotation.image]["annotations_info"][annotation.id])          
