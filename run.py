@@ -417,7 +417,7 @@ def run(job, parameters):
             os.system("rm tmp/"+STATS_FILE_NAME)
 
             this_job_ids = []
-            job.update(progress=100, statusComment="no manual annotations!") 
+            job.update(progress=90, statusComment="no manual annotations!") 
 
         else:    
 
@@ -428,6 +428,7 @@ def run(job, parameters):
 
         # STEP 5: delete old results
         delete_results(parameters, this_job_ids, job)
+        job.update(progress=100, statusComment="job done!")
 
     finally:
 
