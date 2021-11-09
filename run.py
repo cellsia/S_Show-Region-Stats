@@ -17,8 +17,9 @@ from cytomine.models.property import Property, PropertyCollection
 from cytomine.models.image import ImageInstance
 from cytomine.models.project import Project
 from cytomine.models.ontology import TermCollection, Term
-from cytomine.models.user import UserJobCollection
+from cytomine.models.user import UserJobCollection, UserJob
 from cytomine.cytomine import Cytomine
+from six import with_metaclass
 
 
 # version control
@@ -239,9 +240,6 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
     # store this job ids
     this_job_ids = []
 
-    # store annotated_area
-    annotated_area = {}
-
     for annotation in manual_annotations:
         
         try:
@@ -341,47 +339,47 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
 # STEP 5: delete old results
 def delete_results(parameters, this_job_ids, job):
 
-    users = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
-    ids = [user.id for user in users]
+    userjobs = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
+    ids = [userjob.id for userjob in userjobs]
     delta = 90
 
     annotations = AnnotationCollection()
     annotations.project = parameters.cytomine_id_project
     annotations.users = ids
     annotations.showTerm = True
-    annotations.fetch()
-    
-    
+    annotations.fetch()    
+
     if parameters.images_to_analyze:
 
-        anot_ids_to_delete, anot_terms_to_delete = [], []
-
+        anot_terms_to_delete = []
         for annotation in annotations:
             if (not (annotation.term in this_job_ids) and annotation.image == parameters.images_to_analyze):
-
-                anot_ids_to_delete.append(annotation.id)
-                anot_terms = annotation.term
-                [anot_terms_to_delete.append(t) for t in anot_terms];
-
+                userjob = UserJob().fetch(id=annotation.user)
+                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                    anot_terms = annotation.term
+                    [anot_terms_to_delete.append(t) for t in anot_terms]
+                    annotation.delete()                    
     else:
-        anot_ids_to_delete = [annotation.id for annotation in annotations if not (annotation.term in this_job_ids)]
+
         anot_terms_to_delete = []
+        for annotation in annotations:
+            if not (annotation.term in this_job_ids):
+                userjob = UserJob().fetch(id=annotation.user)
+                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                    annotation.delete()
+        
+
+    if parameters.images_to_analyze:
+        terms_to_delete = anot_terms_to_delete
+    else:
+        project = Project().fetch(parameters.cytomine_id_project)
+        termscol = TermCollection().fetch_with_filter("project", project.id)
+        terms_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
     
-    with Cytomine(host=parameters.cytomine_host, public_key=parameters.cytomine_public_key, private_key=parameters.cytomine_private_key, verbose=logging.INFO) as cytomine:
-        cytomine.open_admin_session()
-        [Annotation().delete(id=id_) for id_ in anot_ids_to_delete]
-        
-        if parameters.images_to_analyze:
-            terms_to_delete = anot_terms_to_delete
-        else:
-            project = Project().fetch(parameters.cytomine_id_project)
-            termscol = TermCollection().fetch_with_filter("project", project.id)
-            terms_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
-        
-        for id_ in terms_to_delete:
-            Term().delete(id=id_)
-            delta += get_new_delta(len(terms_to_delete), 90, 100)
-            job.update(progress=int(delta), statusComment="Removing previous results")
+    for id_ in terms_to_delete:
+        Term().delete(id=id_)
+        delta += get_new_delta(len(terms_to_delete), 90, 100)
+        job.update(progress=int(delta), statusComment="Removing previous results")
 
     return None
 
