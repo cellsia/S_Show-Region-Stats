@@ -23,7 +23,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.5.4"
+__version__ = "1.5.9"
 
 
 # constants
@@ -31,8 +31,8 @@ UPLOAD_JOB_NAME = "AI results upload"
 UPLOAD_JOB_IMAGE_PARAMETER_NAME = "cytomine_image"
 UPLOAD_JOB_FILENAME = "detections"
 UPLOAD_JOB_FILEFORMAT = "json"
-POSITIVE_KEY = "2.0"
-NEGATIVE_KEY = "1.0"
+POSITIVE_KEY = "1.0"
+NEGATIVE_KEY = "0.0"
 POSITIVE_COLOR = "#68BC00"
 NEGATIVE_COLOR = "#F44E3B"
 HIDDEN_PROPERTY_PREFIX = "@"
