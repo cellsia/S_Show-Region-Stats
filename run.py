@@ -23,7 +23,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.0"
+__version__ = "1.6.1"
 
 
 # constants
@@ -103,10 +103,18 @@ def delete_results(parameters):
     annotations.showTerm = True
     annotations.fetch()    
 
-    for annotation in annotations:        
-        userjob = UserJob().fetch(id=annotation.user)
-        with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-            annotation.delete()
+    if parameters.images_to_analyze:
+        for annotation in annotations:   
+            if annotation.image == parameters.images_to_analyze:     
+                userjob = UserJob().fetch(id=annotation.user)
+                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                    annotation.delete()
+    
+    else:
+        for annotation in annotations:        
+            userjob = UserJob().fetch(id=annotation.user)
+            with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                annotation.delete()
 
     return None
 
