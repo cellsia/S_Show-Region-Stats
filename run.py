@@ -23,7 +23,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.5.9"
+__version__ = "1.6.0"
 
 
 # constants
@@ -69,31 +69,46 @@ def update_properties(instance, properties):
             Property(instance, key=HIDDEN_PROPERTY_PREFIX+k, value=v).save()
 
 
-def _load_multi_class_points(image_id: str, multipoint: MultiPoint, key: str, annotation_id: int, parameters, hour, this_job_ids) -> None:
+def _load_multi_class_points(image_id: str, multipoint: MultiPoint, key: str, annotation_id: int, parameters, hour) -> None:
 
     project = Project().fetch(parameters.cytomine_id_project)
-    termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
-    
+    termscol = TermCollection().fetch_with_filter("ontology", project.ontology)    
+
     if key == POSITIVE_KEY:
-        term_name = HIDDEN_TERM_PREFIX+"POS_{}_{}".format(annotation_id, hour)
-        Term(term_name, project.ontology, POSITIVE_COLOR).save()
+        t = next(iter([t.id for t in termscol if "pos" in t.name]))
     else:
-        term_name = HIDDEN_TERM_PREFIX+"NEG_{}_{}".format(annotation_id, hour)
-        Term(term_name, project.ontology, NEGATIVE_COLOR).save()
-        
+        t = next(iter([t.id for t in termscol if "neg" in t.name]))
     
-    termscol = TermCollection().fetch_with_filter("ontology", project.ontology)
-    t1 = [t.id for t in termscol if t.name == term_name]
-    this_job_ids.append(t1)
+    
     
     annotations = AnnotationCollection()
-    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=t1))
-    annotations.save()        
+    annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=[t]))
+    annotations.save()      
 
     return None
     
 
 # ------------------------------- Step functions -------------------------------
+
+# STEP 0: delete old results
+def delete_results(parameters):
+
+    userjobs = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
+    ids = [userjob.id for userjob in userjobs]
+    delta = 90
+
+    annotations = AnnotationCollection()
+    annotations.project = parameters.cytomine_id_project
+    annotations.users = ids
+    annotations.showTerm = True
+    annotations.fetch()    
+
+    for annotation in annotations:        
+        userjob = UserJob().fetch(id=annotation.user)
+        with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+            annotation.delete()
+
+    return None
 
 # STEP 1: get uploaded results
 def get_uploaded_results(parameters, job):
@@ -237,9 +252,6 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
     # progress bar status
     delta = 30
 
-    # store this job ids
-    this_job_ids = []
-
     for annotation in manual_annotations:
         
         try:
@@ -269,7 +281,7 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
                     inside_multipoint = MultiPoint(inside_points)
                     time = datetime.now()
                     hour = time.strftime('%H:%M:%S')
-                    _load_multi_class_points(annotation.image, inside_multipoint, key, annotation.id, parameters, hour, this_job_ids)
+                    _load_multi_class_points(annotation.image, inside_multipoint, key, annotation.id, parameters, hour)
                 
                     ins_points[key] = inside_multipoint
                     
@@ -333,54 +345,6 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
     job_data.upload("tmp/"+STATS_FILE_NAME)
     os.system("rm tmp/"+STATS_FILE_NAME)
 
-    return this_job_ids
-
-
-# STEP 5: delete old results
-def delete_results(parameters, this_job_ids, job):
-
-    userjobs = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
-    ids = [userjob.id for userjob in userjobs]
-    delta = 90
-
-    annotations = AnnotationCollection()
-    annotations.project = parameters.cytomine_id_project
-    annotations.users = ids
-    annotations.showTerm = True
-    annotations.fetch()    
-
-    if parameters.images_to_analyze:
-
-        anot_terms_to_delete = []
-        for annotation in annotations:
-            if (not (annotation.term in this_job_ids) and annotation.image == parameters.images_to_analyze):
-                userjob = UserJob().fetch(id=annotation.user)
-                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-                    anot_terms = annotation.term
-                    [anot_terms_to_delete.append(t) for t in anot_terms]
-                    annotation.delete()                    
-    else:
-
-        anot_terms_to_delete = []
-        for annotation in annotations:
-            if not (annotation.term in this_job_ids):
-                userjob = UserJob().fetch(id=annotation.user)
-                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-                    annotation.delete()
-        
-
-    if parameters.images_to_analyze:
-        terms_to_delete = anot_terms_to_delete
-    else:
-        project = Project().fetch(parameters.cytomine_id_project)
-        termscol = TermCollection().fetch_with_filter("project", project.id)
-        terms_to_delete = [t.id for t in termscol if not(t.id in this_job_ids)]
-    
-    for id_ in terms_to_delete:
-        Term().delete(id=id_)
-        delta += get_new_delta(len(terms_to_delete), 90, 100)
-        job.update(progress=int(delta), statusComment="Removing previous results")
-
     return None
 
 
@@ -399,6 +363,9 @@ def run(job, parameters):
 
 
     try:
+
+        # STEP 0: delete old results
+        delete_results(parameters)
 
         # STEP 1: get uploaded results
         job.update(progress=0, statusComment="getting uploaded results")
@@ -427,18 +394,14 @@ def run(job, parameters):
             job_data.upload("tmp/"+STATS_FILE_NAME)
             os.system("rm tmp/"+STATS_FILE_NAME)
 
-            this_job_ids = []
             job.update(progress=90, statusComment="no manual annotations!") 
 
         else:    
 
             # STEP 4: process manual annotations  
             job.update(progress=30, statusComment="processing manual anotations")
-            this_job_ids = process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
+            process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
 
-
-        # STEP 5: delete old results
-        delete_results(parameters, this_job_ids, job)
         job.update(progress=100, statusComment="job done!")
 
     finally:
