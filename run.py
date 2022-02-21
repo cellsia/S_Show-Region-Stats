@@ -24,7 +24,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.2"
+__version__ = "1.6.3"
 
 
 # constants
@@ -408,11 +408,11 @@ def run(job, parameters):
             job.update(progress=30, statusComment="processing manual anotations")
             process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
 
-            # STEP 5: delete old results
-            for annotation in anots_to_delete:
-                userjob = UserJob().fetch(id=annotation.user)
-                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-                    annotation.delete()
+        # STEP 5: delete old results
+        for annotation in anots_to_delete:
+            userjob = UserJob().fetch(id=annotation.user)
+            with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                annotation.delete()
 
         job.update(progress=100, statusComment="job done!")
 
