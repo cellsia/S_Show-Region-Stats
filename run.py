@@ -1,6 +1,7 @@
 # python modules
 from shapely.geometry import MultiPoint, Polygon
 from datetime import datetime
+import threading
 import logging
 import shutil
 import pickle
@@ -23,7 +24,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.1"
+__version__ = "1.6.2"
 
 
 # constants
@@ -80,7 +81,6 @@ def _load_multi_class_points(image_id: str, multipoint: MultiPoint, key: str, an
         t = next(iter([t.id for t in termscol if "neg" in t.name]))
     
     
-    
     annotations = AnnotationCollection()
     annotations.append(Annotation(location=multipoint.wkt, id_image=image_id, id_project=parameters.cytomine_id_project, id_terms=[t]))
     annotations.save()      
@@ -90,8 +90,10 @@ def _load_multi_class_points(image_id: str, multipoint: MultiPoint, key: str, an
 
 # ------------------------------- Step functions -------------------------------
 
-# STEP 0: delete old results
+# STEP 0: fetch old results
 def delete_results(parameters):
+
+    anots_to_delete = []
 
     userjobs = UserJobCollection().fetch_with_filter("project", parameters.cytomine_id_project)
     ids = [userjob.id for userjob in userjobs]
@@ -105,18 +107,14 @@ def delete_results(parameters):
 
     if parameters.images_to_analyze:
         for annotation in annotations:   
-            if annotation.image == parameters.images_to_analyze:     
-                userjob = UserJob().fetch(id=annotation.user)
-                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-                    annotation.delete()
-    
+            if annotation.image == parameters.images_to_analyze: 
+                anots_to_delete.append(annotation)
+
     else:
         for annotation in annotations:        
-            userjob = UserJob().fetch(id=annotation.user)
-            with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
-                annotation.delete()
+            anots_to_delete.append(annotation) 
 
-    return None
+    return anots_to_delete
 
 # STEP 1: get uploaded results
 def get_uploaded_results(parameters, job):
@@ -372,8 +370,8 @@ def run(job, parameters):
 
     try:
 
-        # STEP 0: delete old results
-        delete_results(parameters)
+        # STEP 0: fetch old results
+        anots_to_delete = delete_results(parameters)
 
         # STEP 1: get uploaded results
         job.update(progress=0, statusComment="getting uploaded results")
@@ -409,6 +407,12 @@ def run(job, parameters):
             # STEP 4: process manual annotations  
             job.update(progress=30, statusComment="processing manual anotations")
             process_manual_annotations(manual_annotations, results, image_stats, parameters, job)
+
+            # STEP 5: delete old results
+            for annotation in anots_to_delete:
+                userjob = UserJob().fetch(id=annotation.user)
+                with Cytomine(host=parameters.cytomine_host, public_key=userjob.publicKey, private_key=userjob.privateKey) as cytomine:
+                    annotation.delete()
 
         job.update(progress=100, statusComment="job done!")
 
