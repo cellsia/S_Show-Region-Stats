@@ -2,7 +2,7 @@
   "name": "Show Region Stats",
   "description": "Plugin to show up statistics from a region-annotation",
   "container-image": {
-    "image": "glardies/s_show-region-stats",
+    "image": "cellsia/s_show-region-stats",
     "type": "singularity"
   },
   "command-line": "[CYTOMINE_HOST] [CYTOMINE_PUBLIC_KEY] [CYTOMINE_PRIVATE_KEY] [CYTOMINE_ID_PROJECT] [CYTOMINE_ID_SOFTWARE] [IMAGES_TO_ANALYZE]",
