@@ -24,7 +24,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.3"
+__version__ = "1.6.4"
 
 
 # constants
@@ -187,6 +187,7 @@ def calculate_image_stats(results, job):
     image_stats = {}
 
     for image_id, data in results.items():
+        image_positives, image_negatives = 0, 0
 
         for key, points in data.items():
             if key == POSITIVE_KEY:
