@@ -24,7 +24,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.4"
+__version__ = "1.6.5"
 
 
 # constants
@@ -276,7 +276,8 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
             
             for key, points in data.items():
                 inside_points = [p for p in points if polygon.contains(p)] # inside points
-
+                anot_pos, anot_neg = 0, 0
+                
                 if key == POSITIVE_KEY:
                     anot_pos = len(inside_points)
                 elif key == NEGATIVE_KEY:
