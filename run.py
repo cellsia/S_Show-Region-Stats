@@ -24,7 +24,7 @@ from six import with_metaclass
 
 
 # version control
-__version__ = "1.6.5"
+__version__ = "1.6.6"
 
 
 # constants
@@ -188,12 +188,11 @@ def calculate_image_stats(results, job):
 
     for image_id, data in results.items():
         image_positives, image_negatives = 0, 0
-
         for key, points in data.items():
             if key == POSITIVE_KEY:
-                image_positives = len(points)
+                image_positives = len(points.geoms)
             elif key == NEGATIVE_KEY:
-                image_negatives = len(points)
+                image_negatives = len(points.geoms)
 
         total = image_negatives + image_positives
         if total != 0:
@@ -262,7 +261,6 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
     for annotation in manual_annotations:
         
         try:
-
             # ----- get anot stats -----
             polygon = Polygon(process_polygon(annotation.location)) # annotation geometry
 
@@ -273,10 +271,11 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
                 POSITIVE_KEY:None,
                 NEGATIVE_KEY:None
             }
+
+            anot_pos, anot_neg = 0, 0
             
             for key, points in data.items():
-                inside_points = [p for p in points if polygon.contains(p)] # inside points
-                anot_pos, anot_neg = 0, 0
+                inside_points = [p for p in points.geoms if polygon.contains(p)] # inside points
                 
                 if key == POSITIVE_KEY:
                     anot_pos = len(inside_points)
@@ -284,7 +283,6 @@ def process_manual_annotations(manual_annotations, results, image_stats, paramet
                     anot_neg = len(inside_points)
 
                 try:
-
                     # ----- upload inside_points layers ------
                     inside_multipoint = MultiPoint(inside_points)
                     time = datetime.now()
